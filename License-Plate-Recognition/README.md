@@ -1,10 +1,6 @@
 ```bash
 pip install -r ./requirement.txt
-python plate_scanner        (return lp path, img_path, just_LP, plate = scan_plate())******
-
-
-
-
+python plate_scanner        (return lp path, img_path, just_LP, plate = scan_plate())
 
 
 
@@ -20,6 +16,5 @@ python webcam2.py
 
 python upWeb.py             #ctrl+c to exit
 //-----------------------------------------------------
-```bash
 
 Read Note.md to know more
