@@ -14,11 +14,11 @@ THRESHOLD = 0.4
 
 def get_database_path():
     """Trả về đường dẫn thư mục database"""
-    return os.path.abspath("database")
+    return "database"
 
 def get_image_path(filename):
     """Trả về đường dẫn đầy đủ của một ảnh trong database"""
-    return os.path.abspath(os.path.join("database", filename))
+    return os.path.join("database", filename)
 
 def extract_datetime_from_filename(filename):
     """Trích xuất ngày giờ từ tên file"""
@@ -504,15 +504,15 @@ def check_out_face():
 # ==================== EXAMPLE USAGE ====================
 if __name__ == "__main__":
     # Test check-in
-    print("Testing CHECK-IN...")
-    result = check_in_face()
-    print(f"Success: {result['success']}")
-    print(f"Image Path: {result['image_path']}")
-    print(f"Message: {result['message']}")
-    
-    # Test check-out
-    # print("\nTesting CHECK-OUT...")
-    # result = check_out_face()
+    # print("Testing CHECK-IN...")
+    # result = check_in_face()
     # print(f"Success: {result['success']}")
     # print(f"Image Path: {result['image_path']}")
     # print(f"Message: {result['message']}")
+    
+    # Test check-out
+    print("\nTesting CHECK-OUT...")
+    result = check_out_face()
+    print(f"Success: {result['success']}")
+    print(f"Image Path: {result['image_path']}")
+    print(f"Message: {result['message']}")
