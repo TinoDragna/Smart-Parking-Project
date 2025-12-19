@@ -237,18 +237,20 @@ def check_out_face():
     CHECK-OUT: Xác minh khuôn mặt với database khi ra
     Returns:
         dict: {
-            'success': bool,           # True nếu nhận diện thành công
-            'image_path': str,         # Đường dẫn ảnh trong database
-            'datetime': str,           # Ngày giờ check-in
-            'confidence': float,       # Độ tin cậy (0-1)
-            'message': str            # Thông báo
+            'success': bool,              # True nếu nhận diện thành công
+            'check_in_image': str,        # Đường dẫn ảnh check-in (trong database)
+            'check_out_image': str,       # Đường dẫn ảnh check-out (mới chụp)
+            'datetime': str,              # Ngày giờ check-in
+            'confidence': float,          # Độ tin cậy (0-1)
+            'message': str               # Thông báo
         }
     """
     
     if not os.path.exists("database"):
         return {
             'success': False,
-            'image_path': None,
+            'check_in_image': None,
+            'check_out_image': None,
             'datetime': None,
             'confidence': 0.0,
             'message': 'Database trống, không có dữ liệu để so sánh'
@@ -358,8 +360,18 @@ def check_out_face():
                                     filename, datetime_str, confidence = find_matching_face(embedding)
                                     
                                     if filename:
-                                        # Tìm thấy!
-                                        image_path = get_image_path(filename)
+                                        # Tìm thấy! Lưu ảnh check-out
+                                        check_in_image = get_image_path(filename)
+                                        
+                                        # Lưu ảnh khuôn mặt lúc ra
+                                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                                        checkout_filename = f"checkout_{timestamp}.jpg"
+                                        checkout_filepath = os.path.join("database", checkout_filename)
+                                        
+                                        face_resized = cv2.resize(face_img, (224, 224))
+                                        cv2.imwrite(checkout_filepath, face_resized)
+                                        
+                                        check_out_image = get_image_path(checkout_filename)
                                         
                                         temp_faces.append({
                                             'box': (x, y, w, h),
@@ -369,7 +381,8 @@ def check_out_face():
                                         
                                         state.result = {
                                             'success': True,
-                                            'image_path': image_path,
+                                            'check_in_image': check_in_image,
+                                            'check_out_image': check_out_image,
                                             'datetime': datetime_str,
                                             'confidence': confidence,
                                             'message': f'Xác minh thành công! Check-in lúc {datetime_str}'
@@ -378,7 +391,8 @@ def check_out_face():
                                         print("\n" + "=" * 50)
                                         print(f"✓ CHECK-OUT THÀNH CÔNG!")
                                         print(f"✓ Check-in lúc: {datetime_str}")
-                                        print(f"✓ Đường dẫn ảnh: {image_path}")
+                                        print(f"✓ Ảnh check-in: {check_in_image}")
+                                        print(f"✓ Ảnh check-out: {check_out_image}")
                                         print(f"✓ Độ tin cậy: {confidence:.2%}")
                                         print("=" * 50 + "\n")
                                         
@@ -393,7 +407,8 @@ def check_out_face():
                                         
                                         state.result = {
                                             'success': False,
-                                            'image_path': None,
+                                            'check_in_image': None,
+                                            'check_out_image': None,
                                             'datetime': None,
                                             'confidence': 0.0,
                                             'message': 'Không tìm thấy khuôn mặt trong database'
@@ -488,7 +503,8 @@ def check_out_face():
         if key == ord('q'):
             state.result = {
                 'success': False,
-                'image_path': None,
+                'check_in_image': None,
+                'check_out_image': None,
                 'datetime': None,
                 'confidence': 0.0,
                 'message': 'Người dùng hủy thao tác'
@@ -514,5 +530,7 @@ if __name__ == "__main__":
     print("\nTesting CHECK-OUT...")
     result = check_out_face()
     print(f"Success: {result['success']}")
-    print(f"Image Path: {result['image_path']}")
+    print(f"Check-in Image: {result['check_in_image']}")
+    print(f"Check-out Image: {result['check_out_image']}")
+    print(f"Confidence: {result['confidence']}")
     print(f"Message: {result['message']}")
