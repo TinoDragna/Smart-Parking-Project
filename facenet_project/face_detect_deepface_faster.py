@@ -55,7 +55,11 @@ def check_in_face():
     """
     CHECK-IN: Chụp và lưu khuôn mặt mới khi vào
     Returns:
-        str: Đường dẫn tuyệt đối của ảnh đã lưu, hoặc None nếu thất bại
+        dict: {
+            'success': bool,      # True nếu lưu thành công
+            'image_path': str,    # Đường dẫn ảnh đã lưu
+            'message': str        # Thông báo
+        }
     """
     
     # Tạo thư mục database
@@ -73,7 +77,7 @@ def check_in_face():
         frame_to_process = None
         process_count = 0
         face_detected_count = 0
-        saved_image_path = None
+        result = None
         should_exit = False
 
     state = SharedState()
@@ -129,12 +133,18 @@ def check_in_face():
                                 face_resized = cv2.resize(face_img, (224, 224))
                                 cv2.imwrite(filepath, face_resized)
                                 
-                                state.saved_image_path = get_image_path(filename)
+                                image_path = get_image_path(filename)
+                                
+                                state.result = {
+                                    'success': True,
+                                    'image_path': image_path,
+                                    'message': f'Check-in thành công lúc {extract_datetime_from_filename(filename)}'
+                                }
                                 
                                 print("\n" + "=" * 50)
                                 print(f"✓ CHECK-IN THÀNH CÔNG!")
                                 print(f"✓ Tên file: {filename}")
-                                print(f"✓ Đường dẫn: {state.saved_image_path}")
+                                print(f"✓ Đường dẫn: {image_path}")
                                 print(f"✓ Thời gian: {extract_datetime_from_filename(filename)}")
                                 print("=" * 50 + "\n")
                                 
@@ -201,12 +211,25 @@ def check_in_face():
         key = cv2.waitKey(1) & 0xFF
         
         if key == ord('q'):
+            state.result = {
+                'success': False,
+                'image_path': None,
+                'message': 'Người dùng hủy thao tác check-in'
+            }
             break
 
     video_capture.release()
     cv2.destroyAllWindows()
     
-    return state.saved_image_path
+    # Trả về kết quả hoặc giá trị mặc định nếu không có
+    if state.result is None:
+        return {
+            'success': False,
+            'image_path': None,
+            'message': 'Không detect được khuôn mặt'
+        }
+    
+    return state.result
 
 
 def check_out_face():
@@ -482,10 +505,14 @@ def check_out_face():
 if __name__ == "__main__":
     # Test check-in
     print("Testing CHECK-IN...")
-    image_path = check_in_face()
-    print(f"Result: {image_path}")
+    result = check_in_face()
+    print(f"Success: {result['success']}")
+    print(f"Image Path: {result['image_path']}")
+    print(f"Message: {result['message']}")
     
     # Test check-out
-    print("\nTesting CHECK-OUT...")
-    result = check_out_face()
-    print(f"Result: {result}")
+    # print("\nTesting CHECK-OUT...")
+    # result = check_out_face()
+    # print(f"Success: {result['success']}")
+    # print(f"Image Path: {result['image_path']}")
+    # print(f"Message: {result['message']}")
