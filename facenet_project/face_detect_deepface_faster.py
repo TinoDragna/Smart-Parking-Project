@@ -479,13 +479,13 @@ def check_out_face():
 
 
 # ==================== EXAMPLE USAGE ====================
-# if __name__ == "__main__":
-#     # Test check-in
-#     print("Testing CHECK-IN...")
-#     image_path = check_in_face()
-#     print(f"Result: {image_path}")
+if __name__ == "__main__":
+    # Test check-in
+    print("Testing CHECK-IN...")
+    image_path = check_in_face()
+    print(f"Result: {image_path}")
     
     # Test check-out
-    # print("\nTesting CHECK-OUT...")
-    # result = check_out_face()
-    # print(f"Result: {result}")
+    print("\nTesting CHECK-OUT...")
+    result = check_out_face()
+    print(f"Result: {result}")
