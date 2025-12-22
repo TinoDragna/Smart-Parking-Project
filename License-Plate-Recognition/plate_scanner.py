@@ -22,7 +22,7 @@ os.makedirs(MIN_CROP_PATH, exist_ok=True)
 # 📌 Stable Plate Tracking Logic
 # ===============================
 class PlateTracker:
-    def __init__(self, stable_interval=20, min_count=3):
+    def __init__(self, stable_interval=10, min_count=3):
         """
         stable_interval: thời gian gom OCR (giây)
         min_count: số lần giống nhau để chấp nhận
@@ -71,14 +71,20 @@ yolo_license_plate.conf = 0.6
 # ===============================
 # 📌 Scan Plate (NO WINDOW)
 # ===============================
-def scan_plate(timeout=8):
+def scan_plate(timeout=20):
     """
     Trả về ngay khi detect được biển hợp lệ
     KHÔNG mở cửa sổ camera
     """
-    tracker = PlateTracker(stable_interval=5, min_count=3)
+    
+    tracker = PlateTracker(stable_interval=10, min_count=4)
 
-    vid = cv2.VideoCapture(0)
+    print("📸 scan_plate: START")
+
+    print("📸 Opening camera...")
+    vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    print("📸 VideoCapture created")
+    # vid = cv2.VideoCapture(0)
     if not vid.isOpened():
         print("❌ Cannot open camera")
         return None, None, None
@@ -86,8 +92,10 @@ def scan_plate(timeout=8):
     start_time = time.time()
 
     while time.time() - start_time < timeout:
+        print(time.time() - start_time)
         ret, frame = vid.read()
         if not ret:
+            print("Continue - not ret")
             continue
 
         plates = yolo_LP_detect(frame, size=640)

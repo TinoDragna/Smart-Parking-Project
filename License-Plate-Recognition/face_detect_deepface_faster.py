@@ -40,7 +40,9 @@ def check_in_face(timeout=6):
     Chụp 1 khuôn mặt rõ → lưu → trả path
     Dùng cho ENTRY
     """
-    cam = cv2.VideoCapture(0)
+    print("📸 Opening camera...")
+    cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    print("📸 VideoCapture created")
     if not cam.isOpened():
         return {"success": False, "image_path": None, "message": "Camera error"}
 
@@ -111,7 +113,10 @@ def check_out_face(timeout=6):
     if not db_embeddings:
         return {"success": False, "image_path": None, "message": "Empty face DB"}
 
-    cam = cv2.VideoCapture(0)
+    # cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    print("📸 Opening camera...")
+    cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    print("📸 VideoCapture created")
     if not cam.isOpened():
         return {"success": False, "image_path": None, "message": "Camera error"}
 
