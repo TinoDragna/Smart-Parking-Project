@@ -12,7 +12,7 @@ from camera import camera
 MODEL_NAME = "Facenet"
 DETECTOR_BACKEND = "opencv"
 THRESHOLD = 0.145           # 🔥 An toàn, giảm false accept
-FACE_DB = "database"
+FACE_DB = "../smart_parking_data/face_img"
 
 os.makedirs(FACE_DB, exist_ok=True)
 

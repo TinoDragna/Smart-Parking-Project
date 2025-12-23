@@ -1,3 +1,6 @@
+import faulthandler
+faulthandler.enable()
+
 import time
 import threading
 import pymysql
