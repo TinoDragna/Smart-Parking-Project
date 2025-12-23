@@ -7,6 +7,7 @@ import re
 
 from plate_scanner import scan_plate
 from face_detect_deepface_faster import check_in_face, check_out_face
+from camera import camera
 
 # =====================================================
 # CONSOLE LOG
@@ -33,20 +34,7 @@ db = pymysql.connect(
 log("✅ DB connected")
 
 # =====================================================
-# RFID STATE CHECK
-# =====================================================
-def rfid_is_inside(rfid):
-    with db.cursor() as cur:
-        cur.execute("""
-            SELECT 1
-            FROM parkinghistory
-            WHERE RFID=%s AND TimeOut IS NULL
-            LIMIT 1
-        """, (rfid,))
-        return cur.fetchone() is not None
-
-# =====================================================
-# GATE LOG
+# GATE LOG (LƯU SỰ KIỆN ĐÓNG / MỞ / TỪ CHỐI)
 # =====================================================
 def write_log(gate, action, triggered_by):
     try:
@@ -74,54 +62,72 @@ log("✅ MQTT connected")
 # GLOBAL STATE
 # =====================================================
 irStatus = {"ENTRY": None, "EXIT": None}
-pendingEntry = None
+pendingEntry = None   # RFID vừa vào, dùng để gán slot chính xác
 
 # =====================================================
 # CAMERA LOCK
+# → ĐẢM BẢO CHỈ 1 AI ĐƯỢC DÙNG CAMERA TẠI 1 THỜI ĐIỂM
 # =====================================================
 camera_lock = threading.Lock()
 
 def safe_scan_plate():
-    print("LPR start")
     with camera_lock:
-        print("YYYYY")
         return scan_plate()
 
 def safe_face_checkin():
-    print("Face start in")
     with camera_lock:
         return check_in_face()
 
-def safe_face_checkout():
-    print("Face start out")
+def safe_face_checkout(face_entry_path):
     with camera_lock:
-        return check_out_face()
+        return check_out_face(face_entry_path)
 
 # =====================================================
-# ENTRY WORKER
+# RFID STATE CHECK
+# → RFID ĐÃ ENTRY CHƯA
+# =====================================================
+def rfid_is_inside(rfid):
+    with db.cursor() as cur:
+        cur.execute("""
+            SELECT 1
+            FROM parkinghistory
+            WHERE RFID=%s AND TimeOut IS NULL
+            LIMIT 1
+        """, (rfid,))
+        return cur.fetchone() is not None
+
+# =====================================================
+# ENTRY WORKER: LPR → FACE → OPEN ENTRY
 # =====================================================
 def entry_worker(rfid):
     global pendingEntry
 
+    # --- LPR ---
     img_entry, _, plate_entry = safe_scan_plate()
     if not plate_entry:
         write_log("ENTRY", "LPR_FAIL", rfid)
         client.publish("parking/gate/cmd", "DENY_ENTRY")
+        log("⛔ ENTRY LPR FAIL")
         return
 
+    # --- FACE CHECK-IN ---
     face_res = safe_face_checkin()
     if not face_res or not face_res["success"]:
         write_log("ENTRY", "FACE_FAIL", rfid)
         client.publish("parking/gate/cmd", "DENY_ENTRY")
+        log("⛔ ENTRY FACE FAIL")
         return
 
     face_path = face_res["image_path"]
 
+    # --- OPEN GATE ---
     client.publish("parking/gate/cmd", "OPEN_ENTRY")
     write_log("ENTRY", "OPEN", rfid)
+    log("🚪 OPEN_ENTRY")
 
     pendingEntry = {"rfid": rfid, "time": time.time()}
 
+    # --- LƯU LỊCH SỬ VÀO ---
     with db.cursor() as cur:
         cur.execute("""
             INSERT INTO parkinghistory
@@ -129,34 +135,42 @@ def entry_worker(rfid):
             VALUES (%s, NOW(), %s, %s, %s)
         """, (rfid, img_entry, plate_entry, face_path))
 
-# =====================================================
-# EXIT WORKER
-# =====================================================
-def exit_worker(rfid, entry_plate):
-    global pendingEntry
+    log("✅ ENTRY SAVED")
 
+# =====================================================
+# EXIT WORKER: LPR → FACE → OPEN EXIT
+# =====================================================
+def exit_worker(rfid, entry_plate, face_entry_path):
+    # --- LPR EXIT ---
     img_exit, _, plate_exit = safe_scan_plate()
     if not plate_exit:
         write_log("EXIT", "LPR_FAIL", rfid)
         client.publish("parking/gate/cmd", "DENY_EXIT")
+        log("⛔ EXIT LPR FAIL")
         return
 
     if entry_plate and norm_plate(plate_exit) != entry_plate:
         write_log("EXIT", "LPR_MISMATCH", rfid)
         client.publish("parking/gate/cmd", "DENY_EXIT")
+        log("⛔ EXIT LPR MISMATCH")
         return
 
-    face_res = safe_face_checkout()
+    # --- FACE CHECK-OUT (MATCH ĐÚNG NGƯỜI ENTRY) ---
+    face_res = safe_face_checkout(face_entry_path)
     if not face_res or not face_res["success"]:
         write_log("EXIT", "FACE_MISMATCH", rfid)
         client.publish("parking/gate/cmd", "DENY_EXIT")
+        log("⛔ EXIT FACE FAIL")
         return
 
     face_path = face_res["image_path"]
 
+    # --- OPEN GATE ---
     client.publish("parking/gate/cmd", "OPEN_EXIT")
     write_log("EXIT", "OPEN", rfid)
+    log("🚪 OPEN_EXIT")
 
+    # --- CẬP NHẬT LỊCH SỬ RA ---
     with db.cursor() as cur:
         cur.execute("""
             UPDATE parkinghistory
@@ -172,6 +186,7 @@ def exit_worker(rfid, entry_plate):
             LIMIT 1
         """, (img_exit, plate_exit, face_path, rfid))
 
+    # --- GIẢI PHÓNG SLOT ---
     with db.cursor() as cur:
         cur.execute("""
             UPDATE parkingslot
@@ -179,7 +194,7 @@ def exit_worker(rfid, entry_plate):
             WHERE CurrentRFID=%s
         """, (rfid,))
 
-    pendingEntry = None
+    log("✅ EXIT SAVED & SLOT FREED")
 
 # =====================================================
 # MQTT MESSAGE HANDLER
@@ -192,6 +207,7 @@ def on_message(client, userdata, msg):
     log(f"📩 [{topic}] {payload}")
 
     try:
+        # -------- IR SENSOR --------
         if topic == "parking/gate/entry/ir":
             irStatus["ENTRY"] = payload
             return
@@ -200,15 +216,27 @@ def on_message(client, userdata, msg):
             irStatus["EXIT"] = payload
             return
 
+        # -------- SLOT STATUS --------
         m = re.match(r"^parking/slot/([A-Z])(\d+)/status$", topic)
         if m:
             area, slotCode = m.group(1), m.group(2)
             status = payload
 
+            # Slot bị chiếm → gán cho xe vừa vào
             if status == "O":
                 rfid = pendingEntry["rfid"] if pendingEntry else None
                 if not rfid:
-                    return
+                    with db.cursor() as cur:
+                        cur.execute("""
+                            SELECT RFID FROM parkinghistory
+                            WHERE TimeOut IS NULL
+                            ORDER BY TimeIn DESC
+                            LIMIT 1
+                        """)
+                        row = cur.fetchone()
+                        if not row:
+                            return
+                        rfid = row["RFID"]
 
                 with db.cursor() as cur:
                     cur.execute("""
@@ -233,8 +261,10 @@ def on_message(client, userdata, msg):
                     """, (rfid, slotId))
 
                 pendingEntry = None
+                log(f"✅ SLOT {area}{slotCode} ASSIGNED TO {rfid}")
                 return
 
+            # Slot trống
             if status == "X":
                 with db.cursor() as cur:
                     cur.execute("""
@@ -244,6 +274,7 @@ def on_message(client, userdata, msg):
                     """, (area, slotCode))
                 return
 
+        # -------- RFID --------
         if topic != "parking/rfid":
             return
 
@@ -252,21 +283,31 @@ def on_message(client, userdata, msg):
             return
 
         gateType, rfid = m.group(1), m.group(2).strip()
-        if irStatus.get(gateType) != "O":
+
+        # IR chỉ chặn khi đang X
+        if irStatus.get(gateType) == "X":
             return
 
+        # RFID hợp lệ?
         with db.cursor() as cur:
             cur.execute("SELECT 1 FROM rfidcard WHERE RFID=%s", (rfid,))
             if not cur.fetchone():
                 write_log(gateType, "RFID_INVALID", rfid)
-                client.publish("parking/gate/cmd", f"DENY_{gateType}")
                 return
 
+        # -------- ENTRY --------
         if gateType == "ENTRY":
             if rfid_is_inside(rfid):
                 write_log("ENTRY", "ALREADY_INSIDE", rfid)
                 client.publish("parking/gate/cmd", "DENY_ENTRY")
                 return
+
+            with db.cursor() as cur:
+                cur.execute("SELECT COUNT(*) AS free FROM parkingslot WHERE Status=0")
+                if cur.fetchone()["free"] == 0:
+                    write_log("ENTRY", "PARKING_FULL", rfid)
+                    client.publish("parking/gate/cmd", "DENY_ENTRY")
+                    return
 
             threading.Thread(
                 target=entry_worker,
@@ -275,15 +316,11 @@ def on_message(client, userdata, msg):
             ).start()
             return
 
+        # -------- EXIT --------
         if gateType == "EXIT":
-            if not rfid_is_inside(rfid):
-                write_log("EXIT", "NO_ACTIVE_ENTRY", rfid)
-                client.publish("parking/gate/cmd", "DENY_EXIT")
-                return
-
             with db.cursor() as cur:
                 cur.execute("""
-                    SELECT PlateNumberEntry
+                    SELECT PlateNumberEntry, FaceImageEntry
                     FROM parkinghistory
                     WHERE RFID=%s AND TimeOut IS NULL
                     ORDER BY HistoryID DESC
@@ -291,9 +328,13 @@ def on_message(client, userdata, msg):
                 """, (rfid,))
                 row = cur.fetchone()
 
+            if not row:
+                write_log("EXIT", "NO_ACTIVE_ENTRY", rfid)
+                return
+
             threading.Thread(
                 target=exit_worker,
-                args=(rfid, norm_plate(row["PlateNumberEntry"])),
+                args=(rfid, norm_plate(row["PlateNumberEntry"]), row["FaceImageEntry"]),
                 daemon=True
             ).start()
             return
@@ -301,15 +342,22 @@ def on_message(client, userdata, msg):
     except Exception as e:
         log(f"❌ ERROR: {e}")
 
-def on_disconnect(client, userdata, msg):
-    print("disconnect")
-    
-
 # =====================================================
 # START
 # =====================================================
-client.on_message = on_message 
+client.on_message = on_message
 client.subscribe("parking/#")
 log("➡ Subscribed parking/#")
-client.on_disconnect = on_disconnect
-client.loop_forever()
+
+try:
+    client.loop_forever()
+except KeyboardInterrupt:
+    log("🛑 KeyboardInterrupt")
+finally:
+    log("📷 Releasing camera")
+    camera.release()
+    try:
+        db.close()
+    except:
+        pass
+    log("👋 Shutdown complete")

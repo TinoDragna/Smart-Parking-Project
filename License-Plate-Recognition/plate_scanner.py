@@ -4,7 +4,9 @@ import torch
 import torch_patch
 import os
 import time
+from datetime import datetime
 from collections import defaultdict
+from camera import camera
 
 import function.utils_rotate as utils_rotate
 import function.helper as helper
@@ -71,31 +73,20 @@ yolo_license_plate.conf = 0.6
 # ===============================
 # 📌 Scan Plate (NO WINDOW)
 # ===============================
-def scan_plate(timeout=20):
+def scan_plate(timeout=10):
     """
     Trả về ngay khi detect được biển hợp lệ
     KHÔNG mở cửa sổ camera
     """
     
     tracker = PlateTracker(stable_interval=10, min_count=4)
+    start_time = time.time()
 
     print("📸 scan_plate: START")
 
-    print("📸 Opening camera...")
-    vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    print("📸 VideoCapture created")
-    # vid = cv2.VideoCapture(0)
-    if not vid.isOpened():
-        print("❌ Cannot open camera")
-        return None, None, None
-
-    start_time = time.time()
-
     while time.time() - start_time < timeout:
-        print(time.time() - start_time)
-        ret, frame = vid.read()
+        ret, frame = camera.read()
         if not ret:
-            print("Continue - not ret")
             continue
 
         plates = yolo_LP_detect(frame, size=640)
@@ -109,7 +100,6 @@ def scan_plate(timeout=20):
 
             detected_text = "unknown"
 
-            # OCR + rotate
             for cc in range(2):
                 for ct in range(2):
                     text = helper.read_plate(
@@ -126,7 +116,7 @@ def scan_plate(timeout=20):
                 confirmed_plate = tracker.add_plate(detected_text)
 
                 if confirmed_plate:
-                    ts = str(int(time.time()))
+                    ts = datetime.now().strftime("%d%m%Y_%H%M%S")
                     full_crop_path = os.path.join(
                         FULL_CROP_PATH, f"{confirmed_plate}_{ts}.jpg"
                     )
@@ -138,11 +128,8 @@ def scan_plate(timeout=20):
                     cv2.imwrite(min_crop_path, crop_img)
 
                     print(f"✅ LPR OK: {confirmed_plate}")
-
-                    vid.release()
                     return full_crop_path, min_crop_path, confirmed_plate
 
-    vid.release()
     print("⚠ LPR TIMEOUT")
     return None, None, None
 
