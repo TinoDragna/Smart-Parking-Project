@@ -30,13 +30,13 @@ if(isset($_POST['RegisterInto'])){
 } 
 
 if($test=="true"){
-	header('Location: /smartparking/login.php');
+	header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
 }
 else {
 	echo "Register unsuccessfully";
 }
 if(isset($_POST['Cancel'])) {
-	header('Location: /smartparking/login.php');
+	header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
 }
 
 ?>

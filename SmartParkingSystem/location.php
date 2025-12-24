@@ -5,7 +5,7 @@
         require_once("includes/header.php");
     }
     else {
-         header('Location: /smartparking/login.php');
+         header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
     }
 ?>
 <div class="wrap" style="background: url(image/3.jpg);">

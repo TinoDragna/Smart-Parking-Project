@@ -47,17 +47,17 @@
         <div class="row" style="width: 100%; margin-left: auto; margin-right: auto">
             <div id="nav">                
                 <ul>
-                    <li <?php if($current == 'home') {echo 'class="current"';} ?>><a href="/smartparking/index.php" style="font-family: sans-serif;font-weight: bold;">Home</a></li>
-                    <li <?php if($current == 'control') {echo 'class="current"';} ?>><a href="/smartparking/control.php" style="font-family: sans-serif;font-weight: bold;" id="activeControl"> Slot Control</a></li>
+                    <li <?php if($current == 'home') {echo 'class="current"';} ?>><a href="/Smart-Parking-Project/SmartParkingSystem/index.php" style="font-family: sans-serif;font-weight: bold;">Home</a></li>
+                    <li <?php if($current == 'control') {echo 'class="current"';} ?>><a href="/Smart-Parking-Project/SmartParkingSystem/control.php" style="font-family: sans-serif;font-weight: bold;" id="activeControl"> Slot Control</a></li>
                     <li <?php if($current == 'data') {echo 'class="current"';} ?>><a href="#" style="font-family: sans-serif;font-weight: bold;">Data</a>
                         <ul class="sub-menu">
-                            <li><a href="/smartparking/data.php" style="font-family: 'Saira', sans-serif;font-weight: bold;">Data</a></li>
-                            <li><a href="/smartparking/show_photo.php" style="font-family: 'Saira', sans-serif;font-weight: bold;">Image</a></li>
-                            <li><a href="/smartparking/show_video.php" style="font-family: 'Saira', sans-serif;font-weight: bold;">Video</a></li>
+                            <li><a href="/Smart-Parking-Project/SmartParkingSystem/data.php" style="font-family: 'Saira', sans-serif;font-weight: bold;">Data</a></li>
+                            <li><a href="/Smart-Parking-Project/SmartParkingSystem/show_photo.php" style="font-family: 'Saira', sans-serif;font-weight: bold;">Image</a></li>
+                            <li><a href="/Smart-Parking-Project/SmartParkingSystem/show_video.php" style="font-family: 'Saira', sans-serif;font-weight: bold;">Video</a></li>
                         </ul>
                     </li>
-                    <li <?php if($current == 'location') {echo 'class="current"';} ?>><a href="/smartparking/location.php" style="font-family: sans-serif;font-weight: bold;">Location</a></li>
-                    <li><a href="/smartparking/index.php?logout='1'" style="font-family: sans-serif;font-weight: bold;">Logout</a></li>
+                    <li <?php if($current == 'location') {echo 'class="current"';} ?>><a href="/Smart-Parking-Project/SmartParkingSystem/location.php" style="font-family: sans-serif;font-weight: bold;">Location</a></li>
+                    <li><a href="/Smart-Parking-Project/SmartParkingSystem/index.php?logout='1'" style="font-family: sans-serif;font-weight: bold;">Logout</a></li>
                 </ul>            
             </div>
         </div>

@@ -280,7 +280,7 @@ input[name="Register"]:hover{
 }
 
 .sub-menu > ul {
-    display: none !mportant;
+    display: none !important;
 }
 
 /* for text display*/
@@ -762,3 +762,16 @@ img {
    }  
 }
 
+#slot-container {
+    position: relative;   /* 🔥 REQUIRED */
+    width: 1200px;
+    height: 600px;
+    background: #f5f5f5;
+    border: 2px dashed #aaa; /* debug */
+}
+
+.slot {
+    position: absolute;   /* 🔥 REQUIRED */
+    width: 90px;
+    height: 60px;
+}
