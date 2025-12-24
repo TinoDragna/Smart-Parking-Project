@@ -6,12 +6,31 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT CONCAT(Area, SlotCode) AS SlotName FROM parkingslot";
+// Select the slots with their grid coordinates
+$sql = "
+SELECT 
+    CONCAT(Area, SlotCode) AS SlotName,
+    GridCol,
+    GridRow,
+    Status,
+    Direction
+FROM parkingslot
+ORDER BY Area, SlotCode
+";
+
 $result = $conn->query($sql);
 
-$slots = array();
+$slots = [];
 while ($row = $result->fetch_assoc()) {
-    $slots[] = $row["SlotName"];
+    $slots[] = [
+        "SlotName"    => $row["SlotName"],
+        "coordinates" => [
+            "col" => (int)$row["GridCol"],
+            "row" => (int)$row["GridRow"]
+        ],
+        "Status"      => (int)$row["Status"],
+        "Direction"  => $row["Direction"]
+    ];
 }
 
 header('Content-Type: application/json');

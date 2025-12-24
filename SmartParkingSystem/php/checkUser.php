@@ -12,7 +12,7 @@ if(isset($_POST['Login'])){
 	if (mysqli_num_rows($result)>0) {
 		session_start();// Khởi tạo Session
 		$_SESSION['LoginInto']="TRUE";
-		header('Location: /smartparking/index.php');
+		header('Location: /Smart-Parking-Project/SmartParkingSystem/index.php');
 
 		$conn->close();
 	}
@@ -24,7 +24,7 @@ if(isset($_POST['Login'])){
 }
 
 if(isset($_POST['Register'])) {
-	header('Location: /smartparking/register.php');
+	header('Location: /Smart-Parking-Project/SmartParkingSystem/register.php');
 }
 
 

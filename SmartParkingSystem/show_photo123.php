@@ -5,7 +5,7 @@ if ($_SESSION['LoginInto'] == "TRUE") {
     $current = 'data';
     require_once("./header.php");
 } else {
-    // header('Location: /smartparking/login.php');
+    // header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
 }
 ?>
 

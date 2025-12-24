@@ -9,7 +9,7 @@ if ($_SESSION['LoginInto'] == "TRUE") {
 	require_once("includes/header.php");
 	//	include 'php/getdatatable.php';
 } else {
-	header('Location: /smartparking/login.php');
+	header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
 }
 ?>
 
