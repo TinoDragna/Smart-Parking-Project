@@ -9,3 +9,12 @@ pyyaml
 requests
 pandas
 seaborn
+paho-mqtt
+pymysql
+deepface>=0.0.83
+tensorflow>=2.10.0
+keras>=2.10.0
+mtcnn>=0.1.1
+retina-face>=0.0.13
+tf-keras
+
