@@ -7,14 +7,27 @@ import time
 from camera import camera
 
 # ===============================
+# FIX 0: GIẢM CRASH (CỰC QUAN TRỌNG)
+# ===============================
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+# ===============================
 # CONFIG
 # ===============================
 MODEL_NAME = "Facenet"
 DETECTOR_BACKEND = "opencv"
-THRESHOLD = 0.145           # 🔥 An toàn, giảm false accept
+THRESHOLD = 0.3
 FACE_DB = "../smart_parking_data/face_img"
 
 os.makedirs(FACE_DB, exist_ok=True)
+
+# ===============================
+# FIX 1: LOAD MODEL 1 LẦN DUY NHẤT
+# ===============================
+print("🔄 Loading DeepFace model...")
+model = DeepFace.build_model(MODEL_NAME)
+print("✅ Model loaded")
 
 # ===============================
 # LOAD FACE CASCADE ONCE
@@ -32,24 +45,27 @@ def cosine_distance(e1, e2):
     return 1 - np.dot(e1, e2) / (np.linalg.norm(e1) * np.linalg.norm(e2))
 
 
-def extract_datetime_from_filename(filename):
+# ===============================
+# FIX 2: SAFE EMBEDDING FUNCTION
+# ===============================
+def get_embedding(img):
     try:
-        name = os.path.splitext(filename)[0]
-        _, d, t = name.split("_")
-        return f"{d[6:8]}/{d[4:6]}/{d[0:4]} {t[0:2]}:{t[2:4]}:{t[4:6]}"
-    except:
+        rep = DeepFace.represent(
+            img_path=img,
+            model_name=MODEL_NAME,
+            detector_backend="skip",
+            enforce_detection=False
+        )
+        return rep[0]["embedding"]
+    except Exception as e:
+        print("⚠ EMBEDDING ERROR:", e)
         return None
+
 
 # ===============================
 # CHECK-IN FACE
 # ===============================
 def check_in_face(timeout=6):
-    """
-    ENTRY:
-    - Detect mặt ổn định
-    - Resize 224x224
-    - Save ảnh
-    """
 
     start = time.time()
     detect_count = 0
@@ -72,7 +88,7 @@ def check_in_face(timeout=6):
 
         x, y, w, h = faces[0]
         face = frame[y:y+h, x:x+w]
-        face = cv2.resize(face, (224, 224))   # 🔥 CHUẨN HOÁ
+        face = cv2.resize(face, (224, 224))
 
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         path = os.path.join(FACE_DB, f"face_{ts}.jpg")
@@ -90,27 +106,15 @@ def check_in_face(timeout=6):
         "message": "Face timeout"
     }
 
+
 # ===============================
 # CHECK-OUT FACE
 # ===============================
 def check_out_face(face_entry_path, timeout=6):
-    """
-    EXIT:
-    - LUÔN save ảnh EXIT
-    - Resize giống ENTRY
-    - CHỈ so với face ENTRY
-    - Multi-frame → lấy dist nhỏ nhất
-    """
 
-    # LOAD ENTRY EMBEDDING
-    try:
-        entry_emb = DeepFace.represent(
-            img_path=face_entry_path,
-            model_name=MODEL_NAME,
-            detector_backend=DETECTOR_BACKEND,
-            enforce_detection=False
-        )[0]["embedding"]
-    except:
+    # ===== LOAD ENTRY EMBEDDING =====
+    entry_emb = get_embedding(face_entry_path)
+    if entry_emb is None:
         return {
             "success": False,
             "image_path": None,
@@ -140,21 +144,16 @@ def check_out_face(face_entry_path, timeout=6):
 
         x, y, w, h = faces[0]
         face = frame[y:y+h, x:x+w]
-        face = cv2.resize(face, (224, 224))   # 🔥 CHUẨN HOÁ
+        face = cv2.resize(face, (224, 224))
 
-        # SAVE EXIT IMAGE (ALWAYS)
+        # ===== SAVE FILE =====
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         exit_path = os.path.join(FACE_DB, f"face_exit_{ts}.jpg")
         cv2.imwrite(exit_path, face)
 
-        try:
-            exit_emb = DeepFace.represent(
-                img_path=face,
-                model_name=MODEL_NAME,
-                detector_backend="skip",
-                enforce_detection=False
-            )[0]["embedding"]
-        except:
+        # ===== FIX 3: DÙNG FILE PATH (KHÔNG DÙNG numpy) =====
+        exit_emb = get_embedding(exit_path)
+        if exit_emb is None:
             continue
 
         dist = cosine_distance(exit_emb, entry_emb)

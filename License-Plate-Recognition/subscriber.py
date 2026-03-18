@@ -74,8 +74,52 @@ def on_message(client, userdata, msg):
             return
 
         if topic == "parking/gate/exit/ir":
+            previous = irStatus['EXIT']
             irStatus['EXIT'] = payload.strip()
             log(f"ℹ Exit IR status: {irStatus['EXIT']}")
+            # Xe vừa đi qua cổng (O → X)
+            if previous == "O" and irStatus['EXIT'] == "X":
+
+                with db.cursor() as cur:
+                    cur.execute("""
+                        SELECT SlotID, CurrentRFID
+                        FROM parkingslot
+                        WHERE CurrentRFID IS NOT NULL
+                        LIMIT 1
+                    """)
+                    row = cur.fetchone()
+
+                if row:
+
+                    rfid = row["CurrentRFID"]
+                    slotIdExit = row["SlotID"]
+
+                    with db.cursor() as cur:
+
+                        # ===== logic cũ được chuyển xuống đây =====
+                        cur.execute("""
+                            UPDATE parkinghistory
+                            SET TimeOut = NOW()
+                            WHERE RFID=%s AND TimeOut IS NULL
+                            ORDER BY HistoryID DESC LIMIT 1
+                        """, (rfid,))
+
+                        #không tính phí (*10) ngay đây nữa, mà đưa xuống dưới, khi EXIT chứ không phải khi ra mới tính
+                        cur.execute("""
+                            UPDATE parkinghistory
+                            SET Duration = TIMESTAMPDIFF(MINUTE, TimeIn, TimeOut),
+                                Fee = TIMESTAMPDIFF(MINUTE, TimeIn, TimeOut) 
+                            WHERE RFID=%s AND TimeOut IS NOT NULL
+                            ORDER BY HistoryID DESC LIMIT 1
+                        """, (rfid,))
+
+                        cur.execute("""
+                            UPDATE parkingslot
+                            SET Status=0, CurrentRFID=NULL
+                            WHERE SlotID=%s
+                        """, (slotIdExit,))
+
+                    log(f"🚗 RFID {rfid} rời SlotID {slotIdExit}, slot trống lại")
             return
 
         # ==========================================
@@ -144,43 +188,73 @@ def on_message(client, userdata, msg):
 
                 # ===== EXIT =====
                 elif gateType == "EXIT":
+                    # Kiểm tra xe có trong bãi không
                     with db.cursor() as cur:
-                        cur.execute("SELECT 1 FROM parkinghistory WHERE RFID=%s AND TimeOut IS NULL", (rfid,))
-                        inside = cur.fetchone()
+                        cur.execute("""
+                            SELECT HistoryID, TimeIn
+                            FROM parkinghistory
+                            WHERE RFID=%s AND TimeOut IS NULL
+                            ORDER BY HistoryID DESC LIMIT 1
+                        """, (rfid,))
+                        row = cur.fetchone()
 
-                    if not inside:
-                        log(f"⛔ RFID {rfid} không có xe trong bãi → không mở cổng ra")
+                    if not row:
+                        log(f"⛔ RFID {rfid} không có xe trong bãi → không tạo payment")
                         return
 
-                    client.publish("parking/gate/cmd", "OPEN_EXIT")
-                    log("🚪 Mở cổng ra")
+                    historyId = row["HistoryID"]
 
+                    # Tính thời gian gửi xe hiện tại
                     with db.cursor() as cur:
-                        cur.execute("SELECT SlotID FROM parkingslot WHERE CurrentRFID=%s LIMIT 1", (rfid,))
-                        slotRow = cur.fetchone()
+                        cur.execute("""
+                            SELECT TIMESTAMPDIFF(MINUTE, TimeIn, NOW()) AS minutes
+                            FROM parkinghistory
+                            WHERE HistoryID=%s
+                        """, (historyId,))
+                        feeRow = cur.fetchone()
 
-                    if slotRow:
-                        slotIdExit = slotRow["SlotID"]
+                    minutes = feeRow["minutes"] if feeRow and feeRow["minutes"] is not None else 0
 
-                        with db.cursor() as cur:
-                            cur.execute("""
-                                UPDATE parkinghistory
-                                SET TimeOut = NOW()
-                                WHERE RFID=%s AND TimeOut IS NULL
-                                ORDER BY HistoryID DESC LIMIT 1
-                            """, (rfid,))
+                    # Tính phí (ví dụ: 5000 VND / giờ, làm tròn lên)
+                    hours = (minutes + 59) // 60
+                    fee = hours * 5000
 
-                            cur.execute("""
-                                UPDATE parkinghistory
-                                SET Duration = TIMESTAMPDIFF(MINUTE, TimeIn, TimeOut),
-                                    Fee = TIMESTAMPDIFF(MINUTE, TimeIn, TimeOut) * 10
-                                WHERE RFID=%s AND TimeOut IS NOT NULL
-                                ORDER BY HistoryID DESC LIMIT 1
-                            """, (rfid,))
+                    # Tránh tạo nhiều payment pending cho cùng RFID
+                    with db.cursor() as cur:
+                        cur.execute("""
+                            SELECT PaymentID FROM payments
+                            WHERE RFID=%s AND Status='pending'
+                            LIMIT 1
+                        """, (rfid,))
+                        existing = cur.fetchone()
 
-                            cur.execute("UPDATE parkingslot SET Status=0, CurrentRFID=NULL WHERE SlotID=%s", (slotIdExit,))
+                    if existing:
+                        log(f"ℹ RFID {rfid} đã có payment pending → ID {existing['PaymentID']}")
+                        return
 
-                        log(f"🚗 RFID {rfid} rời SlotID {slotIdExit}, slot trống lại")
+                    # Tạo payment mới
+                    with db.cursor() as cur:
+                        cur.execute("""
+                            INSERT INTO payments (RFID, HistoryID, Amount)
+                            VALUES (%s, %s, %s)
+                        """, (rfid, historyId, fee))
+                        paymentId = cur.lastrowid
+
+                    log(f"💳 Tạo payment {paymentId} cho RFID {rfid} | Duration={minutes} phút | Fee={fee}")
+
+                    # ================================
+                    # NOTE:
+                    # Đã BỎ các dòng:
+                    #   client.publish("parking/gate/cmd", "OPEN_EXIT")
+                    #   UPDATE parkinghistory TimeOut/Duration/Fee
+                    #   UPDATE parkingslot Status=0
+                    #
+                    # Lý do:
+                    #   - Sau khi thêm payment, cổng chỉ mở khi payment = paid (admin/web confirm).
+                    #   - Việc UPDATE TimeOut và giải phóng slot phải thực hiện khi xe thật sự đi qua IR exit
+                    #     (ví dụ khi topic 'parking/gate/exit/ir' chuyển O → X), để tránh báo trống slot
+                    #     khi xe chưa rời bãi.
+                    # ================================
 
             else:  # INVALID RFID
                 authMsg = f"{rfid}:no"
