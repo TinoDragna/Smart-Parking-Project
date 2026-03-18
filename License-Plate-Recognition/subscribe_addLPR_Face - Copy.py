@@ -1,7 +1,6 @@
 import faulthandler
 faulthandler.enable()
 
-import json
 import time
 import threading
 import pymysql
@@ -13,9 +12,6 @@ from plate_scanner import scan_plate
 from face_detect_deepface_faster import check_in_face, check_out_face
 from camera import camera
 
-
-# O: Occupied, X: Empty
-# 1: Occupied, 0: Empty
 # =====================================================
 # CONSOLE LOG
 # =====================================================
@@ -172,31 +168,19 @@ def exit_worker(rfid, entry_plate, face_entry_path):
 
     face_path = face_res["image_path"]
 
-    # # --- OPEN GATE --- Không open vì chưa trả tiền
-    # client.publish("parking/gate/cmd", "OPEN_EXIT")
-    # write_log("EXIT", "OPEN", rfid)
-    # log("🚪 OPEN_EXIT")
+    # --- OPEN GATE ---
+    client.publish("parking/gate/cmd", "OPEN_EXIT")
+    write_log("EXIT", "OPEN", rfid)
+    log("🚪 OPEN_EXIT")
 
     # --- CẬP NHẬT LỊCH SỬ RA ---
-    # with db.cursor() as cur:
-    #     cur.execute("""
-    #         UPDATE parkinghistory
-    #         SET
-    #             TimeOut = NOW(),
-    #             Duration = TIMESTAMPDIFF(MINUTE, TimeIn, NOW()),
-    #             Fee = TIMESTAMPDIFF(MINUTE, TimeIn, NOW()),
-    #             ImageFullExit = %s,
-    #             PlateNumberExit = %s,
-    #             FaceImageExit = %s
-    #         WHERE RFID=%s AND TimeOut IS NULL
-    #         ORDER BY HistoryID DESC
-    #         LIMIT 1
-    #     """, (img_exit, plate_exit, face_path, rfid))
-
     with db.cursor() as cur:
         cur.execute("""
             UPDATE parkinghistory
             SET
+                TimeOut = NOW(),
+                Duration = TIMESTAMPDIFF(MINUTE, TimeIn, NOW()),
+                Fee = TIMESTAMPDIFF(MINUTE, TimeIn, NOW()) * 10,
                 ImageFullExit = %s,
                 PlateNumberExit = %s,
                 FaceImageExit = %s
@@ -205,97 +189,15 @@ def exit_worker(rfid, entry_plate, face_entry_path):
             LIMIT 1
         """, (img_exit, plate_exit, face_path, rfid))
 
-    # # --- GIẢI PHÓNG SLOT ---
-    # with db.cursor() as cur:
-    #     cur.execute("""
-    #         UPDATE parkingslot
-    #         SET Status=0, CurrentRFID=NULL
-    #         WHERE CurrentRFID=%s
-    #     """, (rfid,))
-
-    # log("✅ EXIT SAVED & SLOT FREED")
-
-    # --- TÍNH PHÍ ---
+    # --- GIẢI PHÓNG SLOT ---
     with db.cursor() as cur:
         cur.execute("""
-            SELECT TIMESTAMPDIFF(MINUTE, TimeIn, NOW()) AS minutes
-            FROM parkinghistory
-            WHERE RFID=%s AND TimeOut IS NULL
-            ORDER BY HistoryID DESC
-            LIMIT 1
+            UPDATE parkingslot
+            SET Status=0, CurrentRFID=NULL
+            WHERE CurrentRFID=%s
         """, (rfid,))
-        m = cur.fetchone()
 
-    minutes = m["minutes"] if m and m["minutes"] else 0
-    hours = (minutes + 59) // 60
-    fee = hours * 5000
-
-    # --- TRÁNH DUPLICATE PAYMENT ---
-    with db.cursor() as cur:
-        cur.execute("""
-            SELECT PaymentID FROM payments
-            WHERE RFID=%s AND Status='pending'
-            LIMIT 1
-        """, (rfid,))
-        if cur.fetchone():
-            log(f"ℹ PAYMENT already exists for {rfid}")
-            return
-
-    # --- INSERT PAYMENT ---
-    with db.cursor() as cur:
-        cur.execute("""
-            SELECT HistoryID FROM parkinghistory
-            WHERE RFID=%s AND TimeOut IS NULL
-            ORDER BY HistoryID DESC LIMIT 1
-        """, (rfid,))
-        history = cur.fetchone()
-
-        cur.execute("""
-            INSERT INTO payments (RFID, HistoryID, Amount)
-            VALUES (%s, %s, %s)
-        """, (rfid, history["HistoryID"], fee))
-
-        paymentId = cur.lastrowid
-
-    log(f"💳 PAYMENT CREATED: {paymentId} | RFID {rfid} | Fee {fee}")
-
-# =====================================================
-# PAYMENT CHECK (DB → MQTT)
-# =====================================================
-def check_paid_and_open():
-    try:
-        with db.cursor() as cur:
-            cur.execute("""
-                SELECT PaymentID, RFID
-                FROM payments
-                WHERE Status='paid' AND Notified=0
-                ORDER BY PaymentID ASC
-                LIMIT 1
-            """)
-            row = cur.fetchone()
-
-        if not row:
-            return
-
-        paymentId = row["PaymentID"]
-        rfid = row["RFID"]
-
-        log(f"💰 Payment detected: {paymentId} | RFID {rfid}")
-
-        # ===== OPEN GATE =====
-        client.publish("parking/gate/cmd", "OPEN_EXIT")
-        log("🚪 OPEN_EXIT (from payment)")
-
-        # ===== MARK AS PROCESSED =====
-        with db.cursor() as cur:
-            cur.execute("""
-                UPDATE payments
-                SET Notified=1
-                WHERE PaymentID=%s
-            """, (paymentId,))
-
-    except Exception as e:
-        log(f"❌ PAYMENT CHECK ERROR: {e}")
+    log("✅ EXIT SAVED & SLOT FREED")
 
 # =====================================================
 # MQTT MESSAGE HANDLER
@@ -314,66 +216,9 @@ def on_message(client, userdata, msg):
             return
 
         if topic == "parking/gate/exit/ir":
-            previous = irStatus["EXIT"]
             irStatus["EXIT"] = payload
-
-            # Xe vừa đi qua cổng (O → X)
-            if previous == "O" and payload == "X":
-
-                with db.cursor() as cur:
-
-                    # ===== 1. TÌM RFID ĐANG Ở CỔNG =====
-                    cur.execute("""
-                        SELECT CurrentRFID
-                        FROM parkingslot
-                        WHERE CurrentRFID IS NOT NULL
-                        LIMIT 1
-                    """)
-                    row = cur.fetchone()
-
-                    if not row:
-                        log("⚠ No vehicle at exit")
-                        return
-
-                    rfid_exit = row["CurrentRFID"]
-
-                    # ===== 2. UPDATE TIMEOUT =====
-                    cur.execute("""
-                        UPDATE parkinghistory
-                        SET TimeOut = NOW(),
-                            Duration = TIMESTAMPDIFF(MINUTE, TimeIn, NOW())
-                        WHERE RFID=%s AND TimeOut IS NULL
-                        ORDER BY HistoryID DESC LIMIT 1
-                    """, (rfid_exit,))
-
-                    # ===== 3. LẤY PAYMENT ĐÃ TRẢ =====
-                    cur.execute("""
-                        SELECT Amount
-                        FROM payments
-                        WHERE RFID=%s AND Status='paid'
-                        ORDER BY PaymentID DESC LIMIT 1
-                    """, (rfid_exit,))
-                    p = cur.fetchone()
-
-                    if p:
-                        # ===== 4. COPY FEE =====
-                        cur.execute("""
-                            UPDATE parkinghistory
-                            SET Fee=%s
-                            WHERE RFID=%s AND TimeOut IS NOT NULL
-                            ORDER BY HistoryID DESC LIMIT 1
-                        """, (p["Amount"], rfid_exit))
-
-                    # ===== 5. FREE SLOT =====
-                    cur.execute("""
-                        UPDATE parkingslot
-                        SET Status=0, CurrentRFID=NULL
-                        WHERE CurrentRFID=%s
-                    """, (rfid_exit,))
-
-                log(f"🚗 EXIT COMPLETE | RFID {rfid_exit}")
-
             return
+
         # -------- SLOT STATUS --------
         m = re.match(r"^parking/slot/([A-Z])(\d+)/status$", topic)
         if m:
@@ -414,7 +259,7 @@ def on_message(client, userdata, msg):
 
                     cur.execute("""
                         UPDATE parkingslot
-                        SET Status=1, CurrentRFID=%s
+                        SET Status=0, CurrentRFID=%s
                         WHERE SlotID=%s
                     """, (rfid, slotId))
 
@@ -427,7 +272,7 @@ def on_message(client, userdata, msg):
                 with db.cursor() as cur:
                     cur.execute("""
                         UPDATE parkingslot
-                        SET Status=0, CurrentRFID=NULL
+                        SET Status=1, CurrentRFID=NULL
                         WHERE Area=%s AND SlotCode=%s
                     """, (area, slotCode))
                 return
@@ -499,7 +344,7 @@ def on_message(client, userdata, msg):
 
     except Exception as e:
         log(f"❌ ERROR: {e}")
- 
+
 # =====================================================
 # START
 # =====================================================
@@ -507,12 +352,8 @@ client.on_message = on_message
 client.subscribe("parking/#")
 log("➡ Subscribed parking/#")
 
-client.loop_start()
-
 try:
-    while True:
-        check_paid_and_open()   
-        time.sleep(2)
+    client.loop_forever()
 except KeyboardInterrupt:
     log("🛑 KeyboardInterrupt")
 finally:
