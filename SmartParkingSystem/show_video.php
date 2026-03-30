@@ -28,6 +28,23 @@ if ($_SESSION['LoginInto'] == "TRUE") {
                     <p><strong>License Plate:</strong> <span id="entry_plate" style="color: #5cb85c; font-weight: bold; font-size: 18px;">--</span></p>
                     <p><strong>RFID Card:</strong> <span id="entry_rfid">--</span></p>
                 </div>
+
+                <!-- Cropped Entry Verification Images -->
+                <div style="margin-top: 15px;">
+                    <h5 style="color: #555; text-align: center;">Entry Scanned Face</h5>
+                    <div style="height: 100px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #ddd; border-radius: 5px;">
+                        <img id="saved_entry_face_img" src="" alt="Face Image" style="max-height: 100%; max-width: 100%; display: none;">
+                        <span id="saved_entry_face_placeholder">No Image</span>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <h5 style="color: #555; text-align: center;">Entry Scanned Plate</h5>
+                    <div style="height: 100px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #ddd; border-radius: 5px;">
+                        <img id="saved_entry_plate_img" src="" alt="Plate Image" style="max-height: 100%; max-width: 100%; display: none;">
+                        <span id="saved_entry_plate_placeholder">No Image</span>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -39,22 +56,24 @@ if ($_SESSION['LoginInto'] == "TRUE") {
                 <!-- TOP: Camera Feed -->
                 <div style="text-align: center; margin-top: 10px;">
                     <h5 style="color: #555;">Live Camera Feed</h5>
-                    <!-- The camera feed URL needs to point to the actual stream, assuming same as entry gate in control.php -->
-                    <iframe width="100%" height="320" style="border: 2px solid #006289; border-radius: 5px; overflow: hidden;" scrolling="no" src="https://iot.eiu.com.vn/picam/cam_pic_new.php?pDelay=40000"></iframe>
+                    <!-- Wrap camera in a container to limit max width on large screens -->
+                    <div style="max-width: 640px; margin: 0 auto; border: 2px solid #006289; border-radius: 5px; overflow: hidden;">
+                        <iframe style="width: 100%; height: 360px; border: none;" scrolling="no" src="https://iot.eiu.com.vn/picam/cam_pic_new.php?pDelay=40000"></iframe>
+                    </div>
                 </div>
 
                 <!-- BOTTOM: Cropped Images -->
                 <div class="row" style="margin-top: 15px;">
                     <div class="col-sm-6" style="text-align: center;">
                         <h5 style="color: #555;">Scanned Face</h5>
-                        <div style="height: 150px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #ddd; border-radius: 5px;">
+                        <div style="height: 100px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #ddd; border-radius: 5px;">
                             <img id="entry_face_img" src="" alt="Face Image" style="max-height: 100%; max-width: 100%; display: none;">
                             <span id="entry_face_placeholder">No Image</span>
                         </div>
                     </div>
                     <div class="col-sm-6" style="text-align: center;">
                         <h5 style="color: #555;">Scanned Plate</h5>
-                        <div style="height: 150px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #ddd; border-radius: 5px;">
+                        <div style="height: 100px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #ddd; border-radius: 5px;">
                             <!-- Full image or cropped plate from backend -->
                             <img id="entry_plate_img" src="" alt="Plate Image" style="max-height: 100%; max-width: 100%; display: none;">
                             <span id="entry_plate_placeholder">No Image</span>
@@ -103,13 +122,10 @@ if ($_SESSION['LoginInto'] == "TRUE") {
 <script type="text/javascript">
 function fixImagePath(dbPath) {
     if (!dbPath) return "";
-    // dbPath is typically "../smart_parking_data/..."
-    // We want to serve it locally if possible. In this web structure, 
-    // maybe we need an image proxy or we assume smart_parking_data is accessible via URL like /smart_parking_data/
-    // Since htdocs has Smart-Parking-Project, the root might be /Smart-Parking-Project/smart_parking_data/
+    // Normalize backslashes (Windows) to forward slashes
+    let fixedPath = dbPath.replace(/\\/g, "/");
     
-    // For now, let's map "../" to "/Smart-Parking-Project/"
-    let fixedPath = dbPath;
+    // Map "../" to the project root URL
     if (fixedPath.startsWith("../")) {
         fixedPath = "/Smart-Parking-Project/" + fixedPath.substring(3);
     }
@@ -134,23 +150,10 @@ function fetchLatestData() {
     fetch('services/get_latest_parking_event.php')
         .then(response => response.json())
         .then(data => {
-            // == ENTRY DATA ==
             const entry = data.entry;
-            if (entry) {
-                document.getElementById('entry_slot').textContent = entry.SlotName || "N/A";
-                document.getElementById('entry_time').textContent = entry.TimeIn || "--";
-                document.getElementById('entry_plate').textContent = entry.PlateNumberEntry || "--";
-                document.getElementById('entry_rfid').textContent = entry.RFID || "--";
-                
-                let faceSrc = fixImagePath(entry.FaceImageEntry);
-                updateImage('entry_face_img', 'entry_face_placeholder', faceSrc);
-                
-                let plateSrc = fixImagePath(entry.MinCropEntry || entry.ImageFullEntry);
-                updateImage('entry_plate_img', 'entry_plate_placeholder', plateSrc);
-            }
-
-            // == EXIT DATA ==
             const exit = data.exit;
+
+            // == 1. EXIT COLUMN (RIGHT) ALWAYS UPDATES WITH LATEST EXIT ==
             if (exit) {
                 document.getElementById('exit_time').textContent = exit.TimeOut || "--";
                 document.getElementById('exit_duration').textContent = exit.Duration !== null ? exit.Duration : "--";
@@ -162,7 +165,46 @@ function fetchLatestData() {
                 let exitFaceSrc = fixImagePath(exit.FaceImageExit);
                 updateImage('exit_face_img', 'exit_face_placeholder', exitFaceSrc);
                 
-                // Exit Plate image
+                let exitPlateSrc = fixImagePath(exit.MinCropExit || exit.ImageFullExit);
+                updateImage('exit_plate_img', 'exit_plate_placeholder', exitPlateSrc);
+            }
+
+            // == 2. MULTI-COLUMN SYNC (COLUMN 1 & 2) ==
+            // We want Column 1 and 2 to show the ENTRY information of the currently relevant vehicle.
+            // If the latest activity is an exit, we should show that vehicle's ENTRY info for comparison.
+            
+            let mainEntry = entry;
+            if (exit && entry) {
+                const tIn = new Date(entry.TimeIn || entry.timein).getTime();
+                const tOut = new Date(exit.TimeOut || exit.timeout).getTime();
+                // If exit is newer than the latest entry, or if they are the same vehicle,
+                // prioritize the 'exit' object as it contains synchronized entry+exit info.
+                if (tOut > tIn || (entry.RFID === exit.RFID && entry.TimeIn === exit.TimeIn)) {
+                    mainEntry = exit;
+                }
+            } else if (!entry && exit) {
+                mainEntry = exit;
+            }
+
+            if (mainEntry) {
+                // Check both casing for robustness
+                const slotID = mainEntry.SlotID || mainEntry.slotid;
+                const timeIn = mainEntry.TimeIn || mainEntry.timein;
+                const plate = mainEntry.PlateNumberEntry || mainEntry.platenumberentry;
+                const rfid = mainEntry.RFID || mainEntry.rfid;
+
+                document.getElementById('entry_slot').textContent = slotID || "N/A";
+                document.getElementById('entry_time').textContent = timeIn || "--";
+                document.getElementById('entry_plate').textContent = plate || "--";
+                document.getElementById('entry_rfid').textContent = rfid || "--";
+                
+                let facePath = mainEntry.FaceImageEntry || mainEntry.faceimageentry;
+                let platePath = mainEntry.MinCropEntry || mainEntry.mincropentry || mainEntry.ImageFullEntry || mainEntry.imagefullentry;
+
+                updateImage('saved_entry_face_img', 'saved_entry_face_placeholder', fixImagePath(facePath));
+                updateImage('saved_entry_plate_img', 'saved_entry_plate_placeholder', fixImagePath(platePath));
+                updateImage('entry_face_img', 'entry_face_placeholder', fixImagePath(facePath));
+                updateImage('entry_plate_img', 'entry_plate_placeholder', fixImagePath(platePath));
             }
         })
         .catch(err => console.error("Error fetching live data: ", err));
