@@ -14,11 +14,11 @@ import pymysql
 import paho.mqtt.client as mqtt
 from datetime import datetime
 import re
+from flask import Flask, Response
 
 from plate_scanner import scan_plate
 from face_detect_deepface_faster import check_in_face, check_out_face
 from camera import camera
-
 
 # O: Occupied, X: Empty
 # 1: Occupied, 0: Empty
@@ -234,7 +234,7 @@ def exit_worker(rfid, entry_plate, face_entry_path):
 
     minutes = m["minutes"] if m and m["minutes"] else 0
     hours = (minutes + 59) // 60
-    fee = hours * 5000
+    fee = hours * 30000
 
     # --- TRÁNH DUPLICATE PAYMENT ---
     with db.cursor() as cur:
@@ -505,7 +505,27 @@ def on_message(client, userdata, msg):
 
     except Exception as e:
         log(f"❌ ERROR: {e}")
- 
+
+# =====================================================
+# FLASK WEB SERVER (MJPEG STREAM)
+# =====================================================
+app = Flask(__name__)
+
+def generate_frames():
+    """Generator liên tục lấy ảnh JPEG từ CameraService và đóng gói thành MJPEG"""
+    while True:
+        frame_bytes = camera.get_mjpeg_frame()
+        if frame_bytes:
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        else:
+            time.sleep(0.1) # Nếu không có frame, đợi 1 chút
+
+@app.route('/video_feed')
+def video_feed():
+    """API Endpoint để web PHP gọi tới thẻ <img>"""
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 # =====================================================
 # START
 # =====================================================
@@ -514,6 +534,14 @@ client.subscribe("parking/#")
 log("➡ Subscribed parking/#")
 
 client.loop_start()
+
+# --- BẬT FLASK SERVER TRONG LUỒNG PHỤ ---
+flask_thread = threading.Thread(
+    target=lambda: app.run(host='0.0.0.0', port=5001, threaded=True, use_reloader=False),
+    daemon=True
+)
+flask_thread.start()
+log("🌐 Flask Web Stream started on http://0.0.0.0:5001/video_feed")
 
 try:
     while True:

@@ -1,10 +1,11 @@
 <?php
 session_start();
-if ($_SESSION['LoginInto'] == "TRUE") {
+if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($_SESSION['Role']) && $_SESSION['Role'] == "Admin") {
    $current = 'data';
    require_once("includes/header.php");
 } else {
    header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
+   exit;
 }
 ?>
 

@@ -4,11 +4,12 @@
 session_start();
 
 //include('php/conn2.php');
-if ($_SESSION['LoginInto'] == "TRUE") {
+if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($_SESSION['Role']) && $_SESSION['Role'] == "Admin") {
 	$current = 'control';
 	require_once("includes/header.php");
 } else {
 	header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
+	exit;
 }
 ?>
 

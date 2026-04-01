@@ -1,11 +1,12 @@
 <?php
 session_start();
-
-if ($_SESSION['LoginInto'] == "TRUE") {
-    $current = 'path';
+// Cho phép cả Admin và User truy cập
+if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE") {
+    $current = 'path'; // Hoặc 'data' bên file user_payment.php
     require_once("includes/header.php");
 } else {
     header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
+    exit;
 }
 ?>
 
@@ -399,6 +400,19 @@ if ($_SESSION['LoginInto'] == "TRUE") {
     // Start MQTT after page is ready
     window.addEventListener("load", initMQTT);
 
+</script>
+
+<script>
+    setInterval(async function () {
+        try {
+            const res = await fetch("check_session_status.php");
+            const data = await res.json();
+            if (data.status === 'logged_out') {
+                alert("Bạn đã rời bãi thành công. Tự động thoát tài khoản!");
+                window.location.href = "login.php"; // Hoặc trang cảm ơn
+            }
+        } catch (err) { }
+    }, 3000); // Kiểm tra 3s/lần
 </script>
 
 <?php require_once("includes/footer.php"); ?>

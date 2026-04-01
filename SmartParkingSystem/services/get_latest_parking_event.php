@@ -7,82 +7,46 @@ $response = [
     "exit" => null
 ];
 
-// Lấy thông tin mới nhất từ bảng history (dù xe đã ra hay chưa)
-$sql_entry = "
+// Lấy 1 dòng data mới nhất từ bảng history, không phân biệt xe đã ra hay chưa hay vẫn trong bãi
+// Định nghĩa "mới nhất": Ưu tiên xe đang có tương tác tại cổng (ví dụ đang ở cổng ra chờ quét), sau đó xét theo thời gian TimeOut hoặc TimeIn mới nhất.
+$sql = "
     SELECT 
-        ph.SlotID, ph.RFID, ph.TimeIn, ph.PlateNumberEntry, ph.FaceImageEntry, ph.ImageFullEntry,
-        ps.SlotName
+        ph.HistoryID, ph.SlotID, ph.RFID, ph.TimeIn, ph.TimeOut, ph.Duration, ph.Fee, 
+        ph.PlateNumberEntry, ph.FaceImageEntry, ph.ImageFullEntry,
+        ph.PlateNumberExit, ph.FaceImageExit, ph.ImageFullExit,
+        CONCAT(ps.Area, ps.SlotCode) AS SlotName
     FROM parkinghistory ph
     LEFT JOIN parkingslot ps ON ph.SlotID = ps.SlotID
     ORDER BY ph.HistoryID DESC 
     LIMIT 1
 ";
-$result_entry = mysqli_query($conn, $sql_entry);
-if ($result_entry && mysqli_num_rows($result_entry) > 0) {
-    $row = mysqli_fetch_assoc($result_entry);
-    
-    // Normalize and derive cropped plate path
-    $fEntry = $row["ImageFullEntry"] ? str_replace("\\", "/", $row["ImageFullEntry"]) : "";
-    $row["ImageFullEntry"] = $fEntry;
+
+$result = mysqli_query($conn, $sql);
+if ($result && mysqli_num_rows($result) > 0) {
+    $row = mysqli_fetch_assoc($result);
+
+    // Normalize paths Entry
+    $row["ImageFullEntry"] = $row["ImageFullEntry"] ? str_replace("\\", "/", $row["ImageFullEntry"]) : "";
     $row["FaceImageEntry"] = $row["FaceImageEntry"] ? str_replace("\\", "/", $row["FaceImageEntry"]) : "";
-    
-    if ($fEntry && (strpos($fEntry, "full_crop_LP") !== false)) {
-        $row["MinCropEntry"] = str_replace("full_crop_LP", "min_crop_LP", $fEntry);
+    if ($row["ImageFullEntry"] && strpos($row["ImageFullEntry"], "full_crop_LP") !== false) {
+        $row["MinCropEntry"] = str_replace("full_crop_LP", "min_crop_LP", $row["ImageFullEntry"]);
     } else {
         $row["MinCropEntry"] = "";
     }
 
-    $response["entry"] = $row;
-}
+    // Normalize paths Exit
+    $row["ImageFullExit"] = $row["ImageFullExit"] ? str_replace("\\", "/", $row["ImageFullExit"]) : "";
+    $row["FaceImageExit"] = $row["FaceImageExit"] ? str_replace("\\", "/", $row["FaceImageExit"]) : "";
+    if ($row["ImageFullExit"] && strpos($row["ImageFullExit"], "full_crop_LP") !== false) {
+        $row["MinCropExit"] = str_replace("full_crop_LP", "min_crop_LP", $row["ImageFullExit"]);
+    } else {
+        $row["MinCropExit"] = "";
+    }
 
-// Lấy thông tin xe ra mới nhất (đã ra)
-$sql_exit = "
-    SELECT 
-        ph.HistoryID,
-        ph.SlotID,
-        ph.RFID,
-        ph.TimeIn,
-        ph.TimeOut,
-        ph.Duration,
-        ph.Fee,
-        ph.PlateNumberEntry,
-        ph.PlateNumberExit,
-        ph.FaceImageExit,
-        ph.ImageFullExit,
-        ph.FaceImageEntry,
-        ph.ImageFullEntry
-    FROM parkinghistory ph
-    WHERE ph.TimeOut IS NOT NULL
-    ORDER BY ph.TimeOut DESC 
-    LIMIT 1
-";
-$result_exit = mysqli_query($conn, $sql_exit);
-if ($result_exit && mysqli_num_rows($result_exit) > 0) {
-    $row_exit = mysqli_fetch_assoc($result_exit);
-    
-    // Normalize and derive paths for exit
-    $fExit = $row_exit["ImageFullExit"] ? str_replace("\\", "/", $row_exit["ImageFullExit"]) : "";
-    $row_exit["ImageFullExit"] = $fExit;
-    $row_exit["FaceImageExit"] = $row_exit["FaceImageExit"] ? str_replace("\\", "/", $row_exit["FaceImageExit"]) : "";
-    
-    if ($fExit && (strpos($fExit, "full_crop_LP") !== false)) {
-        $row_exit["MinCropExit"] = str_replace("full_crop_LP", "min_crop_LP", $fExit);
-    } else {
-        $row_exit["MinCropExit"] = "";
-    }
-    
-    // Normalize entry paths within exit object
-    $fEntryEx = $row_exit["ImageFullEntry"] ? str_replace("\\", "/", $row_exit["ImageFullEntry"]) : "";
-    $row_exit["ImageFullEntry"] = $fEntryEx;
-    $row_exit["FaceImageEntry"] = $row_exit["FaceImageEntry"] ? str_replace("\\", "/", $row_exit["FaceImageEntry"]) : "";
-    
-    if ($fEntryEx && (strpos($fEntryEx, "full_crop_LP") !== false)) {
-        $row_exit["MinCropEntry"] = str_replace("full_crop_LP", "min_crop_LP", $fEntryEx);
-    } else {
-        $row_exit["MinCropEntry"] = "";
-    }
-    
-    $response["exit"] = $row_exit;
+    $response["entry"] = $row;
+    $response["exit"] = $row;
+} else if (!$result) {
+    $response["error"] = mysqli_error($conn);
 }
 
 mysqli_close($conn);

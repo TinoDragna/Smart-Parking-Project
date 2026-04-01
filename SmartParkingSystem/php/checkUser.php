@@ -12,6 +12,7 @@ if(isset($_POST['Login'])){
 	if (mysqli_num_rows($result)>0) {
 		session_start();// Khởi tạo Session
 		$_SESSION['LoginInto']="TRUE";
+		$_SESSION['Role'] = "Admin";
 		header('Location: /Smart-Parking-Project/SmartParkingSystem/index.php');
 
 		$conn->close();
