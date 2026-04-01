@@ -82,27 +82,11 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
                     </div>
                 </div>
 
-                <!-- BOTTOM: Cropped Images -->
-                <div class="row" style="margin-top: 15px;">
-                    <div class="col-sm-6" style="text-align: center;">
-                        <h5 style="color: #555;">Scanned Face</h5>
-                        <div
-                            style="height: 100px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #ddd; border-radius: 5px;">
-                            <img id="entry_face_img" src="" alt="Face Image"
-                                style="max-height: 100%; max-width: 100%; display: none;">
-                            <span id="entry_face_placeholder">No Image</span>
-                        </div>
-                    </div>
-                    <div class="col-sm-6" style="text-align: center;">
-                        <h5 style="color: #555;">Scanned Plate</h5>
-                        <div
-                            style="height: 100px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #ddd; border-radius: 5px;">
-                            <!-- Full image or cropped plate from backend -->
-                            <img id="entry_plate_img" src="" alt="Plate Image"
-                                style="max-height: 100%; max-width: 100%; display: none;">
-                            <span id="entry_plate_placeholder">No Image</span>
-                        </div>
-                    </div>
+                <!-- BOTTOM: Terminal Logs -->
+                <div style="margin-top: 15px;">
+                    <h5 style="color: #555; text-align: left; padding-left: 5px; font-family: monospace;">System Terminal</h5>
+                    <div id="terminal_logs"
+                        style="height: 150px; border: 1px solid #333; overflow-y: auto; background: #1e1e1e; color: #00ff00; border-radius: 5px; padding: 10px; font-family: monospace; font-size: 13px; text-align: left; white-space: pre-wrap;">Connecting to terminal...</div>
                 </div>
 
             </div>
@@ -116,6 +100,8 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
                     OUTGOING VEHICLE</h3>
 
                 <div style="margin-top: 20px; font-size: 16px;">
+                    <p><strong>License Plate:</strong> <span id="exit_plate_text"
+                            style="color: #5cb85c; font-weight: bold; font-size: 18px;">--</span></p>
                     <p><strong>Exit Time:</strong> <span id="exit_time">--</span></p>
                     <p><strong>Total Duration:</strong> <span id="exit_duration">--</span> mins</p>
                     <p><strong>Parking Fee:</strong> <span id="exit_fee"
@@ -192,6 +178,7 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
                     const feeText = exit.Fee !== null ? parseInt(exit.Fee).toLocaleString() + " VND" : "--";
                     document.getElementById('exit_fee').textContent = feeText;
                     document.getElementById('exit_rfid').textContent = exit.RFID || "--";
+                    document.getElementById('exit_plate_text').textContent = exit.PlateNumberExit || "--";
 
                     let exitFaceSrc = fixImagePath(exit.FaceImageExit);
                     updateImage('exit_face_img', 'exit_face_placeholder', exitFaceSrc);
@@ -243,8 +230,6 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
 
                     updateImage('saved_entry_face_img', 'saved_entry_face_placeholder', fixImagePath(facePath));
                     updateImage('saved_entry_plate_img', 'saved_entry_plate_placeholder', fixImagePath(platePath));
-                    updateImage('entry_face_img', 'entry_face_placeholder', fixImagePath(facePath));
-                    updateImage('entry_plate_img', 'entry_plate_placeholder', fixImagePath(platePath));
                 }
             })
             .catch(err => console.error("Error fetching live data: ", err));
@@ -253,6 +238,28 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
     // Fetch immediately, then every 2 seconds
     fetchLatestData();
     setInterval(fetchLatestData, 2000);
+
+    // Fetch terminal logs from python flask server
+    function fetchTerminalLogs() {
+        fetch('http://127.0.0.1:5001/logs')
+            .then(response => response.json())
+            .then(logs => {
+                const terminal = document.getElementById('terminal_logs');
+                // Only scroll to bottom if user is already near bottom, to prevent forcing scroll
+                const isScrolledToBottom = terminal.scrollHeight - terminal.clientHeight <= terminal.scrollTop + 20;
+                terminal.innerHTML = logs.join('<br>');
+                if (isScrolledToBottom) {
+                    terminal.scrollTop = terminal.scrollHeight;
+                }
+            })
+            .catch(err => {
+                const terminal = document.getElementById('terminal_logs');
+                terminal.innerHTML = "<span style='color: red;'>Lost connection to Python server at 127.0.0.1:5001</span>";
+            });
+    }
+
+    fetchTerminalLogs();
+    setInterval(fetchTerminalLogs, 1000);
 
 </script>
 

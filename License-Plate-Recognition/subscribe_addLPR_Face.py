@@ -14,7 +14,8 @@ import pymysql
 import paho.mqtt.client as mqtt
 from datetime import datetime
 import re
-from flask import Flask, Response
+from collections import deque
+from flask import Flask, Response, jsonify
 
 from plate_scanner import scan_plate
 from face_detect_deepface_faster import check_in_face, check_out_face
@@ -25,8 +26,12 @@ from camera import camera
 # =====================================================
 # CONSOLE LOG
 # =====================================================
+log_buffer = deque(maxlen=50)
+
 def log(msg):
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}", flush=True)
+    log_line = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}"
+    print(log_line, flush=True)
+    log_buffer.append(log_line)
 
 def norm_plate(p):
     if not p:
@@ -525,6 +530,13 @@ def generate_frames():
 def video_feed():
     """API Endpoint để web PHP gọi tới thẻ <img>"""
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/logs')
+def get_logs():
+    """API Endpoint để lấy logs terminal hiển thị lên frontend"""
+    resp = Response(json.dumps(list(log_buffer)), mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 # =====================================================
 # START
