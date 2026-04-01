@@ -11,6 +11,7 @@ import re
 from plate_scanner import scan_plate
 from face_detect_deepface_faster import check_in_face, check_out_face
 from camera import camera
+from path_finder import find_path_by_slot
 
 # =====================================================
 # CONSOLE LOG
@@ -126,6 +127,7 @@ def entry_worker(rfid):
     # --- OPEN GATE ---
     client.publish("parking/gate/cmd", "OPEN_ENTRY")
     write_log("ENTRY", "OPEN", rfid)
+    slot_assigned = find_path_by_slot("Entry")
     log("🚪 OPEN_ENTRY")
 
     pendingEntry = {"rfid": rfid, "time": time.time()}
@@ -134,9 +136,9 @@ def entry_worker(rfid):
     with db.cursor() as cur:
         cur.execute("""
             INSERT INTO parkinghistory
-            (RFID, TimeIn, ImageFullEntry, PlateNumberEntry, FaceImageEntry)
-            VALUES (%s, NOW(), %s, %s, %s)
-        """, (rfid, img_entry, plate_entry, face_path))
+            (RFID, TimeIn, ImageFullEntry, PlateNumberEntry, FaceImageEntry, SlotAssigned)
+            VALUES (%s, NOW(), %s, %s, %s, %s)
+        """, (rfid, img_entry, plate_entry, face_path, slot_assigned))
 
     log("✅ ENTRY SAVED")
 
@@ -227,6 +229,7 @@ def on_message(client, userdata, msg):
 
             # Slot bị chiếm → gán cho xe vừa vào
             if status == "O":
+                find_path_by_slot("")
                 rfid = pendingEntry["rfid"] if pendingEntry else None
                 if not rfid:
                     with db.cursor() as cur:
@@ -269,6 +272,7 @@ def on_message(client, userdata, msg):
 
             # Slot trống
             if status == "X":
+                find_path_by_slot(f"{area}{slotCode}")
                 with db.cursor() as cur:
                     cur.execute("""
                         UPDATE parkingslot
