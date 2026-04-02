@@ -1,37 +1,58 @@
-# camera.py
 import cv2
 import threading
-
-# class Camera:
-#     def __init__(self, src=0):
-#         self.cap = cv2.VideoCapture(src, cv2.CAP_DSHOW)
-#         self.lock = threading.Lock()
-
-#         if not self.cap.isOpened():
-#             raise RuntimeError("❌ Cannot open camera")
-
-#     def read(self):
-#         with self.lock:
-#             ret, frame = self.cap.read()
-#         return ret, frame
-
-#     def release(self):
-#         with self.lock:
-#             if self.cap.isOpened():
-#                 self.cap.release()
-
-# # GLOBAL SINGLETON
-# camera = Camera(0)
+import time
 
 class CameraService:
-    def __init__(self, cam_id=0):
-        self.cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
+    def __init__(self, src=0): # Thay src=0 bằng URL camera (ví dụ: 'rtsp://...') nếu dùng IP Cam
+        self.cap = cv2.VideoCapture(src)
+        self.lock = threading.Lock() # Lock để chống Race Condition
+        self.running = True
+        
         if not self.cap.isOpened():
-            raise RuntimeError("Camera open failed")
+            print("❌ Không thể mở Camera!")
+            self.ret = False
+            self.frame = None
+        else:
+            self.ret, self.frame = self.cap.read()
+            
+        # Khởi chạy luồng phụ (background thread) liên tục đọc frame
+        self.thread = threading.Thread(target=self._update_frame, daemon=True)
+        self.thread.start()
+
+    def _update_frame(self):
+        """Liên tục lấy khung hình mới nhất từ Camera lưu vào biến cục bộ."""
+        while self.running:
+            if self.cap.isOpened():
+                ret, frame = self.cap.read()
+                with self.lock: # Khoá lại khi đang ghi đè frame mới
+                    self.ret = ret
+                    self.frame = frame
+            time.sleep(0.01) # Nghỉ 10ms để tránh chiếm dụng 100% CPU
 
     def read(self):
-        return self.cap.read()
+        """Dùng cho AI (LPR, DeepFace) lấy frame OpenCV thô."""
+        with self.lock:
+            if self.frame is not None:
+                # Trả về bản copy để AI xử lý không ảnh hưởng tới frame gốc đang stream
+                return self.ret, self.frame.copy()
+            return self.ret, None
+
+    def get_mjpeg_frame(self):
+        """Dùng cho Flask Web Server lấy ảnh JPEG để stream."""
+        with self.lock:
+            if self.frame is None:
+                return None
+            # Nén frame OpenCV thành chuẩn JPEG
+            ret, jpeg = cv2.imencode('.jpg', self.frame)
+            if not ret:
+                return None
+            return jpeg.tobytes()
 
     def release(self):
+        """Dọn dẹp và tắt camera an toàn."""
+        self.running = False
+        self.thread.join() # Đợi luồng phụ kết thúc
         self.cap.release()
-camera = CameraService(0)
+
+# Khởi tạo instance toàn cục để import vào các file khác
+camera = CameraService(0) # Khai báo tham số src tương ứng của bạn

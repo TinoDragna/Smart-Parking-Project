@@ -104,10 +104,11 @@ def on_message(client, userdata, msg):
                             ORDER BY HistoryID DESC LIMIT 1
                         """, (rfid,))
 
+                        #không tính phí (*10) ngay đây nữa, mà đưa xuống dưới, khi EXIT chứ không phải khi ra mới tính
                         cur.execute("""
                             UPDATE parkinghistory
                             SET Duration = TIMESTAMPDIFF(MINUTE, TimeIn, TimeOut),
-                                Fee = TIMESTAMPDIFF(MINUTE, TimeIn, TimeOut) * 10
+                                Fee = TIMESTAMPDIFF(MINUTE, TimeIn, TimeOut) 
                             WHERE RFID=%s AND TimeOut IS NOT NULL
                             ORDER BY HistoryID DESC LIMIT 1
                         """, (rfid,))

@@ -4,20 +4,18 @@
 session_start();
 
 //include('php/conn2.php');
-if ($_SESSION['LoginInto'] == "TRUE") {
+if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($_SESSION['Role']) && $_SESSION['Role'] == "Admin") {
 	$current = 'control';
 	require_once("includes/header.php");
 } else {
 	header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
+	exit;
 }
-
-
 ?>
 
 <div class="wrap" style="background: url(image/3.jpg); padding-bottom: 10px; display: flex; justify-content: center;">
-	<div class="row">
-		<div class="col-sm-3">
-
+	<div class="row" style="width: 100%; margin: 0;">
+		<div class="col-sm-3" style="padding: 15px;">
 			<h1 class="sub-1">GATE CONTROL PANEL</h1>
 			<div class="column" style="background: #f0f0f0; padding: 15px; border-radius: 10px;">
 				<h2>GATE CONTROL</h2>
@@ -38,33 +36,30 @@ if ($_SESSION['LoginInto'] == "TRUE") {
 			</div>
 		</div> <!-- end of col-3 -->
 
-
-
-		<div class="col-sm-6" style="text-align: center; padding: 0px;">
+		<div class="col-sm-7" style="text-align: center; padding: 15px;">
 			<h1 class="sub-1">SURVEILLANCE CAMERA</h1>
-			<div class="row">
-				<div class="col-sm-6">
+			<div class="row" style="margin: 0;">
+				<div class="col-sm-6" style="padding: 5px;">
 					<h4>Entry gate</h4>
-					<iframe width="100%" height="240" style="border: 2px solid green; border-radius: 5px"
+					<iframe width="100%" height="240" style="border: 2px solid green; border-radius: 5px; overflow: hidden;" scrolling="yes"
 						src="https://iot.eiu.com.vn/picam/cam_pic_new.php?pDelay=40000"></iframe>
 				</div>
-				<div class="col-sm-6">
+				<div class="col-sm-6" style="padding: 5px;">
 					<h4>Exit gate</h4>
-					<iframe width="100%" height="240" style="border: 2px solid red; border-radius: 5px"
+					<iframe width="100%" height="240" style="border: 2px solid red; border-radius: 5px; overflow: hidden;" scrolling="no"
 						src="http://172.16.10.170:81/stream"></iframe>
 				</div>
 			</div>
-
 		</div> <!-- end of col-6 -->
-		<div class="col-sm-3">
+
+		<div class="col-sm-2" style="padding: 15px;">
 			<!-- chỗ này để số lượng chỗ đã đỗ, còn trống, trên tổng số -->
 			<h1 class="sub-1">OVERAL STATUS</h1>
 			<div class="center">
-<p style="color: orange; font-weight: bold; text-align: center;">System Time: <span
+				<p style="color: orange; font-weight: bold; text-align: center;">System Time: <span
 						id="system_timer"></span></p>
 				<div id="system_refresh">
 					<?php
-
 					include("php/connectSQL.php");
 					// Lấy tổng số lượng slot trong bảng parkingslot
 					$sql = "SELECT COUNT(*)  AS total_slots FROM parkingslot";
@@ -114,404 +109,111 @@ if ($_SESSION['LoginInto'] == "TRUE") {
 					data-toggle="tooltip" title="Restart system!" data-placement="top"><img style="height: 40px;"
 						src="image/restart.png"></button>
 			</div>
-
-
 		</div> <!-- end of col-3 -->
-		<div class="col-sm-12">
+
+		<!-- <div class="col-sm-12">
 			<h2 class="sub-1" style="text-align: center;">
 				TOTAL AVAILABLE SLOTS: <span id="available-count">0</span>
 			</h2>
 		</div>
-		<button id="test-path" style="margin:20px;">TEST PATH</button>
 		<div class="col-sm-12" style="display: flex; justify-content: center;">
 			<div class="parking-area"
-				style="border: 2px solid #ccc; padding: 10px; border-radius: 10px; background: #fff; display: inline-block; margin: 20px auto;">
-				<div id="slot-container" style="
-					position: relative;
-					width: 1200px;
-					height: 600px;
-					border: 2px solid #ccc;
-					margin: 20px auto;
-					padding: 0;
-					box-sizing: border-box;
-				">			
+				style="border-radius: 10px solid #ccc; padding: 10px; background: #fff; display: inline-block; margin: 20px auto;">
+				<div id="slot-container-control">
 				</div>
 			</div>
-		</div>
+		</div> -->
 	</div>
 </div> <!--End of row section -->
-</div> <!--End of wrap section -->
+
+<!-- 🔥 MODAL POPUP -->
+<div id="slotModal" class="modal">
+	<div class="modal-content">
+		<span class="close">&times;</span>
+
+		<h2 style="text-align:center;">Parking Slot Details</h2>
+
+		<div id="slot-container-control"
+			style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; justify-items: center;">
+		</div>
+	</div>
+</div>
+
 <script type="text/javascript">
-	const slotContainer = document.getElementById("slot-container");
-	// Add some spacing for path lines
-	// ===== GLOBAL layout values =====
-	let slotWidth = 0;
-	let slotHeight = 0;
-	let hSpacing = 20;
-	let vSpacing = 20;
-	let maxCol = 0;
-	let maxRow = 0;
+	const slotContainer = document.getElementById("slot-container-control");
 	async function fetchSlotsFromDB() {
 		try {
-			// Lấy danh sách tất cả slot
 			const slotsRes = await fetch('services/get_slot.php');
-			const slots = await slotsRes.json(); // ["A1", "A2", ...]
-			console.log("Slots from DB:", slots);
+			const slots = await slotsRes.json();
 
-			// Lấy danh sách slot bị occupied
 			const occupiedRes = await fetch('services/get_occupied.php');
-			const occupiedSlots = await occupiedRes.json(); // ["A2", "B3", ...]
+			const occupiedSlots = await occupiedRes.json();
 
+			slotContainer.innerHTML = "";
 			let availableCount = 0;
 
-			slotContainer.innerHTML = ''; // clear previous
+			slotContainer.style.display = "grid";
 
-			// Determine grid size
-			maxCol = 0, maxRow = 0;
-			slots.forEach(slot => {
-				if (slot.coordinates.col > maxCol) maxCol = slot.coordinates.col;
-				if (slot.coordinates.row > maxRow) maxRow = slot.coordinates.row;
-			});
+			const filteredSlots = slots.filter(slot =>
+				/^[A-Z]\d+$/.test(slot.SlotName)
+			);
 
-			maxCol += 1; // cols count
-			maxRow += 1; // rows count
+			filteredSlots.sort((a, b) => {
+				const letterA = a.SlotName.charAt(0);
+				const letterB = b.SlotName.charAt(0);
 
-			const slotContainerWidth = slotContainer.clientWidth;
-			const slotContainerHeight = slotContainer.clientHeight;
+				const numberA = parseInt(a.SlotName.slice(1));
+				const numberB = parseInt(b.SlotName.slice(1));
 
-			slotWidth = (slotContainerWidth - hSpacing * (maxCol + 1)) / maxCol;
-			slotHeight = (slotContainerHeight - vSpacing * (maxRow + 1)) / maxRow;
-
-			slots.forEach(slot => {
-				const x = hSpacing + slot.coordinates.col * (slotWidth + hSpacing);
-				const y = vSpacing + slot.coordinates.row * (slotHeight + vSpacing);
-
-				// Entry/Exit symbols
-				// Entry/Exit arrow
-				// Entry / Exit arrow (slot-centered)
-				if (slot.SlotName === "Entry" || slot.SlotName === "Exit") {
-					const el = document.createElement('div');
-
-					el.style.position = 'absolute';
-					el.style.left = `${x}px`;
-					el.style.top = `${y}px`;
-					el.style.width = `${slotWidth}px`;
-					el.style.height = `${slotHeight}px`;
-
-					el.style.display = 'flex';
-					el.style.justifyContent = 'center';
-					el.style.alignItems = 'center';
-
-					el.style.fontSize = '60px';
-					el.style.lineHeight = '1';
-					el.style.userSelect = 'none';
-					el.style.pointerEvents = 'none';
-
-					el.style.color =
-						slot.SlotName === "Entry" ? 'blue' : 'orange';
-
-					const dirMap = {
-						N: '↑',
-						S: '↓',
-						E: '→',
-						W: '←'
-					};
-
-					el.innerText = dirMap[slot.Direction] || '→';
-
-					console.log(slot.Direction);
-
-					slotContainer.appendChild(el);
-					return;
+				// 🔥 số giảm dần (5 → 1)
+				if (numberA !== numberB) {
+					return numberB - numberA;
 				}
 
+				// chữ tăng dần (A → D)
+				return letterA.localeCompare(letterB);
+			});
 
+			filteredSlots.forEach((slot) => {
+				const slotDiv = document.createElement("div");
+				slotDiv.className = "slot";
 
-				// Normal slot box
-				const el = document.createElement('div');
-				el.className = 'slot';
-				el.id = `slot-${slot.SlotName}`;
-				el.style.position = 'absolute';
-				el.style.left = `${x}px`;
-				el.style.top = `${y}px`;
-				el.style.width = `${slotWidth}px`;
-				el.style.height = `${slotHeight}px`;
-				el.style.border = '1px solid #ccc';
-				el.style.borderRadius = '8px';
-				el.style.display = 'flex';
-				el.style.flexDirection = 'column';
-				el.style.justifyContent = 'center';
-				el.style.alignItems = 'center';
-				el.style.textAlign = 'center';
-				el.style.boxSizing = 'border-box';
+				const slotName = slot.SlotName;
 
-				// Color based on status
 				if (slot.Status == 1) {
-					el.style.background = 'rgb(255, 204, 204)'; // occupied = red
-				} else if (slot.Status == 2) {
-					el.style.background = 'rgb(255, 255, 204)'; // reserved = yellow
+					slotDiv.classList.add("occupied");
+					slotDiv.innerHTML = `
+			<h4>${slotName}</h4>
+			<p>Status: <span style="color:red">Occupied</span></p>
+		`;
+				}
+				else if (slot.Status == 2) {
+					slotDiv.classList.add("reserved");
+					slotDiv.innerHTML = `
+			<h4>${slotName}</h4>
+			<p>Status: <span style="color:orange">Reserved</span></p>
+		`;
 				}
 				else {
-					el.style.background = 'rgb(204, 255, 204)'; // available = green
-					availableCount += 1;
+					slotDiv.classList.add("available");
+					slotDiv.innerHTML = `
+			<h4>${slotName}</h4>
+			<p>Status: <span style="color:green">Available</span></p>
+		`;
+					availableCount++;
 				}
 
-				const h4 = document.createElement('h4');
-				h4.style.margin = '0';
-				h4.style.fontSize = '14px';
-				h4.innerText = slot.SlotName;
-				el.appendChild(h4);
-
-				const p = document.createElement('p');
-				p.style.margin = '0';
-				p.style.fontSize = '12px';
-				if (slot.Status == 0) {
-					p.innerHTML = `Status: <strong style="color:green">Available</strong>`;
-				} else if (slot.Status == 1) {
-					p.innerHTML = `Status: <strong style="color:red">Occupied</strong>`;
-				} else if (slot.Status == 2) {
-					p.innerHTML = `Status: <strong style="color:orange">Reserved</strong>`;
-				}
-				el.appendChild(p);
-
-				slotContainer.appendChild(el);
+				slotContainer.appendChild(slotDiv);
 			});
 
-		// Hiển thị số slot trống
-		document.getElementById("available-count").textContent = availableCount;
+			document.getElementById("available-count").textContent = availableCount;
 		} catch (error) {
 			console.error("Lỗi lấy slot từ DB:", error);
 		}
 	}
 
-	function createPathLayer() {
-		let svg = document.getElementById("path-layer");
-		if (svg) svg.remove();
-
-		svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-		svg.setAttribute("id", "path-layer");
-		svg.style.position = "absolute";
-		svg.style.left = "0";
-		svg.style.top = "0";
-		svg.style.width = "100%";
-		svg.style.height = "100%";
-		svg.style.pointerEvents = "none";
-		svg.style.zIndex = "5";
-
-		slotContainer.appendChild(svg);
-		return svg;
-	}
-
-	function createMarkerLayer() {
-		let layer = document.getElementById("marker-layer");
-		if (layer) layer.remove();
-
-		layer = document.createElement("div");
-		layer.id = "marker-layer";
-		layer.style.position = "absolute";
-		layer.style.left = "0";
-		layer.style.top = "0";
-		layer.style.width = "100%";
-		layer.style.height = "100%";
-		layer.style.pointerEvents = "none";
-		layer.style.zIndex = "10";
-
-		slotContainer.appendChild(layer);
-		return layer;
-	}
-
-	function drawYouAreHere(node) {
-		const layer = createMarkerLayer();
-
-		const x = hSpacing + node.col * (slotWidth + hSpacing) + slotWidth / 2;
-		const y = vSpacing + node.row * (slotHeight + vSpacing) + slotHeight / 2;
-
-		const marker = document.createElement("div");
-		marker.style.position = "absolute";
-		marker.style.left = `${x}px`;
-		marker.style.top = `${y}px`;
-		marker.style.transform = "translate(-50%, -70%)";
-		marker.style.display = "flex";
-		marker.style.flexDirection = "column";
-		marker.style.alignItems = "center";
-		marker.style.justifyContent = "center";
-
-		// Dot
-		const car = document.createElement("div");
-		car.innerText = "🚗";
-		car.style.fontSize = "60px";
-		car.style.lineHeight = "1";
-
-		// Label
-		// const label = document.createElement("div");
-		// label.innerText = "YOU ARE HERE";
-		// label.style.fontSize = "12px";
-		// label.style.fontWeight = "bold";
-		// label.style.color = "blue";
-		// label.style.background = "white";
-		// label.style.padding = "2px 6px";
-		// label.style.borderRadius = "6px";
-		// label.style.marginBottom = "4px";
-		// label.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
-
-		marker.appendChild(car);
-		layer.appendChild(marker);
-	}
-
-	// function getNodeAnchor(node, isEndpoint = false, direction = null) {
-	// 	let x = hSpacing + node.col * (slotWidth + hSpacing) + slotWidth / 2;
-	// 	let y = vSpacing + node.row * (slotHeight + vSpacing) + slotHeight / 2;
-
-	// 	if (isEndpoint && direction) {
-	// 		switch (direction) {
-	// 			case 'N': y -= slotHeight / 2; break;
-	// 			case 'S': y += slotHeight / 2; break;
-	// 			case 'W': x -= slotWidth / 2; break;
-	// 			case 'E': x += slotWidth / 2; break;
-	// 		}
-	// 	}
-
-	// 	return { x, y };
-	// }
-
-
-	function drawPath(pathDetails) {
-		pathNodes = pathDetails.pathNodes;
-		const type = pathDetails.type; // "entry" or "exit"
-		let color;
-		switch (type) {
-			case "entry":
-				color = "blue";
-				break;
-			case "exit":
-				color = "orange";
-				break;
-			default:
-				color = "black";
-		}
-		const svg = createPathLayer();
-		svg.innerHTML = '';
-
-		if (!pathNodes || pathNodes.length < 2) return;
-
-		drawYouAreHere(pathNodes[0]);
-
-		const toPixel = (node) => ({
-			x: hSpacing + node.col * (slotWidth + hSpacing) + slotWidth / 2,
-			y: vSpacing + node.row * (slotHeight + vSpacing) + slotHeight / 2
-		});
-
-		let d = '';
-		pathNodes.forEach((node, i) => {
-			const p = toPixel(node);
-			d += (i === 0 ? 'M' : ' L') + ` ${p.x} ${p.y}`;
-		});
-
-		const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-		path.setAttribute("d", d);
-
-		path.setAttribute("stroke", color);
-		path.setAttribute("stroke-width", "3.5");
-		path.setAttribute("fill", "none");
-		path.setAttribute("stroke-linecap", "round");
-		path.setAttribute("stroke-linejoin", "round");
-
-		svg.appendChild(path);
-	}
-
-	document.getElementById("test-path").addEventListener("click", () => {
-		const entryToA5 = {
-			"pathNodes": [
-				{ col: 0, row: 5},   // Entry road
-				{ col: 0, row: 4.5 },
-				{ col: 0.5, row: 4.5 },
-				{ col: 0.5, row: 3.5 },
-				{ col: 0.5, row: 2.5 },
-				{ col: 0.5, row: 1.5 },
-				{ col: 0.5, row: 0.5 },
-				{ col: 0.5, row: 0},
-				{ col: 1, row: 0}
-			],
-			"type": "entry"
-		};
-
-		const A5ToExit = {
-			"pathNodes": [
-				{ col: 1, row: 0},
-				{ col: 1, row: -0.5},
-				{ col: 2, row: -0.5},
-				{ col: 3, row: -0.5},
-				{ col: 4, row: -0.5},
-				{ col: 4.5, row: -0.5},
-				{ col: 4.5, row: 0.5},
-				{ col: 4.5, row: 5},
-				{ col: 5, row: 5}		
-			],
-			"type": "exit"
-		};
-
-		chosenPath = entryToA5;
-		// chosenPath = A5ToExit;
-
-		drawPath(chosenPath);
-	});
-
-
-	// Gọi hàm khi load trang
 	fetchSlotsFromDB();
-
 </script>
-
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-
-<script>
-	let client;
-
-	function initMQTT() {
-		// CHANGE to your broker WSS endpoint
-		// Example: wss://broker.example.com:8084/mqtt
-		client = mqtt.connect("ws://172.16.2.4:9001/mqtt", {
-			keepalive: 60,
-			clean: true,
-			reconnectPeriod: 3000,
-			connectTimeout: 4000,
-		});
-
-		client.on("connect", () => {
-			console.log("✅ MQTT connected over WSS");
-
-			// Subscribe to topics
-			client.subscribe("map/path");
-			client.subscribe("car/position");
-		});
-
-		client.on("message", (topic, message) => {
-			try {
-				const data = JSON.parse(message.toString());
-				console.log("MQTT message:", topic, data);
-
-				if (topic === "map/path") {
-					drawPath(data);
-				}
-			} catch (e) {
-				console.error("Invalid MQTT message", e);
-			}
-		});
-
-		client.on("error", (err) => {
-			console.error("❌ MQTT error", err);
-		});
-
-		client.on("close", () => {
-			console.warn("⚠️ MQTT disconnected");
-		});
-	}
-
-	// Start MQTT after page is ready
-	window.addEventListener("load", initMQTT);
-
-</script>
-
 
 <!-- real time -->
 <script>
@@ -547,7 +249,17 @@ if ($_SESSION['LoginInto'] == "TRUE") {
 		sendCommand("CLOSE_EXIT");
 	});
 
-
+	function showNotification(message, color = "#4CAF50") {
+		const noti = document.getElementById("notification");
+		noti.style.display = "block";
+		noti.style.backgroundColor = color;
+		noti.textContent = message;
+		noti.style.opacity = "1";
+		setTimeout(() => {
+			noti.style.opacity = "0";
+			setTimeout(() => { noti.style.display = "none"; }, 1000);
+		}, 2500);
+	}
 
 	function sendCommand(action) {
 		fetch("mqtt_control.php", {
@@ -559,15 +271,72 @@ if ($_SESSION['LoginInto'] == "TRUE") {
 		})
 			.then(response => response.text())
 			.then(result => {
-				alert("Server response: " + result);
+				let message = "";
+				let color = "#4CAF50";
+
+				if (action === "OPEN_ENTRY") message = "Open Entrance successfully";
+				else if (action === "CLOSE_ENTRY") message = "Close Entrance successfully";
+				else if (action === "OPEN_EXIT") message = "Open Exit successfully";
+				else if (action === "CLOSE_EXIT") message = "Close Exit successfully";
+				else {
+					message = "Unknown action";
+					color = "#f44336";
+				}
+
+				showNotification(message, color);
 				console.log(result);
 			})
-			.catch(error => console.error("Error:", error));
+			.catch(error => {
+				console.error("Error:", error);
+				showNotification("Error sending command!", "#f44336");
+			});
+	}
+
+	const modal = document.getElementById("slotModal");
+	const btn = document.getElementById("data_detail");
+	const closeBtn = document.querySelector(".close");
+
+	// mở popup
+	btn.onclick = function () {
+		modal.style.display = "block";
+		fetchSlotsFromDB(); // 🔥 load data khi mở
+	}
+
+	// đóng popup
+	closeBtn.onclick = function () {
+		modal.style.display = "none";
+	}
+
+	// click ra ngoài để đóng
+	window.onclick = function (event) {
+		if (event.target == modal) {
+			modal.style.display = "none";
+		}
 	}
 </script>
 
+<!-- 🔔 Notification box -->
+<div id="notification"></div>
+
+<!-- 💅 Style for notification -->
+<style>
+	#notification {
+		display: none;
+		position: fixed;
+		top: 20px;
+		right: 20px;
+		padding: 12px 20px;
+		background-color: #4CAF50;
+		color: white;
+		border-radius: 4px;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+		z-index: 1000;
+		transition: opacity 0.5s ease;
+	}
+</style>
+
 <script type="text/javascript" src="js/jquery.js"></script>
-<script type="text/javascript" src="js/index.js"></script>
+<!-- <script type="text/javascript" src="js/index.js"></script> -->
 <!-- <script src="php/conn2.php"></script> -->
 <!-- <script src="php/mainfunction.php"></script>	 -->
 

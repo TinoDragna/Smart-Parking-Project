@@ -1,61 +1,132 @@
-<?php
+<?php 
+session_start();
 
-$db = new mysqli("localhost","smartparking","cyber@2025","smart_parking");
-
-if(isset($_POST['confirm'])){
-
-    $id = intval($_POST['id']);
-
-    $db->query("UPDATE payments SET Status='paid' WHERE PaymentID=$id");
-
+if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($_SESSION['Role']) && $_SESSION['Role'] == "Admin") {
+    $current = 'data';
+    require_once("includes/header.php");
+} else {
+    header('Location: /Smart-Parking-Project/SmartParkingSystem/login.php');
+    exit;
 }
-
-$res = $db->query("SELECT * FROM payments ORDER BY PaymentID DESC");
-
 ?>
 
-<h2>Admin Payment</h2>
+<div class="wrap" style="background: url(image/3.jpg); min-height:100vh; padding:20px;">
+    
+    <div class="row">
+        <div class="col-12" style="text-align:center;">
+            <h2 class="Title" style="color:white;">ADMIN PAYMENT MANAGEMENT</h2>
+        </div>
+    </div>
 
-<table border=1>
+    <div class="row" style="margin-top:20px;">
+        <div class="col-12">
 
-<tr>
-<th>ID</th>
-<th>RFID</th>
-<th>Amount</th>
-<th>Status</th>
-<th>Action</th>
-</tr>
+            <table class="table table-bordered table-hover table-striped" 
+                   style="background:white; border-radius:10px; overflow:hidden;">
+                
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>RFID</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
 
-<?php while($r=$res->fetch_assoc()){ ?>
+                <!-- 🔥 JS sẽ render vào đây -->
+                <tbody id="paymentBody"></tbody>
 
-<tr>
+            </table>
 
-<td><?php echo $r['PaymentID']; ?></td>
+        </div>
+    </div>
+</div>
 
-<td><?php echo $r['RFID']; ?></td>
+<script>
 
-<td><?php echo $r['Amount']; ?></td>
+// ==============================
+// LOAD PAYMENTS (REALTIME)
+// ==============================
+async function loadPayments(){
 
-<td><?php echo $r['Status']; ?></td>
+    try{
+        const res = await fetch("services/get_payments.php?t=" + Date.now());
+        const data = await res.json();
 
-<td>
+        const body = document.getElementById("paymentBody");
 
-<?php if($r['Status']=="pending"){ ?>
+        let html = "";
 
-<form method="POST">
+        data.forEach(p=>{
 
-<input type="hidden" name="id" value="<?php echo $r['PaymentID']; ?>">
+            let status = "";
+            let action = "";
 
-<button name="confirm">Confirm Paid</button>
+            // ===== STATUS =====
+            if(p.Status == "pending"){
+                status = `<span class="badge badge-warning">Pending</span>`;
+                action = `<span style="color:orange">Waiting User</span>`;
+            }
+            else if(p.Status == "waiting"){
+                status = `<span class="badge badge-info">Waiting</span>`;
+                action = `
+                    <button onclick="confirmPayment(${p.PaymentID})"
+                    class="btn btn-success btn-sm">
+                        Confirm
+                    </button>
+                `;
+            }
+            else{
+                status = `<span class="badge badge-success">Paid</span>`;
+                action = `<span style="color:gray;">Done</span>`;
+            }
 
-</form>
+            html += `
+            <tr>
+                <td>${p.PaymentID}</td>
+                <td>${p.RFID}</td>
+                <td>${p.Amount}</td>
+                <td>${status}</td>
+                <td style="text-align:center;">${action}</td>
+            </tr>
+            `;
+        });
 
-<?php } ?>
+        body.innerHTML = html;
 
-</td>
+    }catch(err){
+        console.error("Load payments error:", err);
+    }
+}
 
-</tr>
 
-<?php } ?>
+// ==============================
+// ADMIN CONFIRM PAYMENT
+// ==============================
+function confirmPayment(id){
 
-</table>
+    fetch("services/confirm_payment.php",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/x-www-form-urlencoded"
+        },
+        body:"id=" + id
+    })
+    .then(()=>{
+        loadPayments(); // reload ngay
+    });
+}
+
+
+// ==============================
+// AUTO REFRESH
+// ==============================
+setInterval(loadPayments, 2000);
+
+// load lần đầu
+loadPayments();
+
+</script>
+
+<?php require_once("includes/footer.php"); ?>
