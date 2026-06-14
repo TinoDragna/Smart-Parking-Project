@@ -4,7 +4,7 @@ from deepface import DeepFace
 import os
 from datetime import datetime
 import time
-from camera import camera
+from camera import entry_camera, exit_camera
 
 # ===============================
 # FIX 0: GIẢM CRASH (CỰC QUAN TRỌNG)
@@ -65,13 +65,13 @@ def get_embedding(img):
 # ===============================
 # CHECK-IN FACE
 # ===============================
-def check_in_face(timeout=6):
+def check_in_face(camera_obj, timeout=6):
 
     start = time.time()
     detect_count = 0
 
     while time.time() - start < timeout:
-        ret, frame = camera.read()
+        ret, frame = camera_obj.read()
         if not ret:
             continue
 
@@ -110,7 +110,7 @@ def check_in_face(timeout=6):
 # ===============================
 # CHECK-OUT FACE
 # ===============================
-def check_out_face(face_entry_path, timeout=6):
+def check_out_face(face_entry_path, camera_obj, timeout=6):
 
     # ===== LOAD ENTRY EMBEDDING =====
     entry_emb = get_embedding(face_entry_path)
@@ -127,7 +127,7 @@ def check_out_face(face_entry_path, timeout=6):
     best_exit_path = None
 
     while time.time() - start < timeout:
-        ret, frame = camera.read()
+        ret, frame = camera_obj.read()
         if not ret:
             continue
 

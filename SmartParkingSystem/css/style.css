@@ -926,3 +926,10 @@ img {
     font-size: 28px;
     cursor: pointer;
 }
+
+/* ===== Filter Panels ===== */
+
+.filter-wrapper .card {
+    width: 50%;
+    min-width: 700px;
+}

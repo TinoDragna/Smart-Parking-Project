@@ -55,4 +55,9 @@ class CameraService:
         self.cap.release()
 
 # Khởi tạo instance toàn cục để import vào các file khác
-camera = CameraService(0) # Khai báo tham số src tương ứng của bạn
+# camera = CameraService(0) # Khai báo tham số src tương ứng của bạn
+ENTRY_STREAM = "https://iot.eiu.com.vn/pi5/?action=stream"
+EXIT_STREAM  = "https://iot.eiu.com.vn/pi5Picam/stream.mjpg"
+
+entry_camera = CameraService(ENTRY_STREAM)
+exit_camera = CameraService(EXIT_STREAM)

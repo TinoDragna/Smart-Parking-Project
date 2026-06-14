@@ -1,5 +1,5 @@
 <?php
-session_start();
+include('session_start.php');
 // Cho phép cả Admin và User truy cập
 if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE") {
     $current = 'path'; // Hoặc 'data' bên file user_payment.php

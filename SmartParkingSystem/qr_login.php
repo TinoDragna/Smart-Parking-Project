@@ -1,5 +1,5 @@
 <?php
-session_start();
+include('session_start.php');
 // Khai báo file kết nối database của bạn (sửa lại đường dẫn nếu cần)
 require_once("db_connect.php"); 
 

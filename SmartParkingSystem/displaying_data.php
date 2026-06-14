@@ -1,7 +1,7 @@
 <?php
 
 //include 'php/draw.php';
-session_start();
+include('session_start.php');
 
 //include('php/conn2.php');
 if ($_SESSION['LoginInto'] == "TRUE") {
