@@ -1,5 +1,5 @@
 <?php 
-include('session_start.php');
+require_once("session_start.php");
 
 if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($_SESSION['Role']) && $_SESSION['Role'] == "Admin") {
     $current = 'data';

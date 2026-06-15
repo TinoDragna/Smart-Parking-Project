@@ -89,7 +89,7 @@
                     } ?>><a
                             href="/Smart-Parking-Project/SmartParkingSystem/location.php"
                             style="font-family: sans-serif;font-weight: bold;">Location</a></li>
-                    <li><a href="/Smart-Parking-Project/SmartParkingSystem/index.php?logout='1'"
+                    <li><a href="/Smart-Parking-Project/SmartParkingSystem/home.php?logout='1'"
                             style="font-family: sans-serif;font-weight: bold;">Logout</a></li>
                 </ul>
             </div>

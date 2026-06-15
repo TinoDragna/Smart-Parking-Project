@@ -1,8 +1,7 @@
 <?php
 
 //include 'php/draw.php';
-include('session_start.php');
-
+require_once("session_start.php");
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));

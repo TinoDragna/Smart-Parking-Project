@@ -1,5 +1,5 @@
 <?php
-include('session_start.php');
+require_once("session_start.php");
 
 if ($_SESSION['LoginInto'] == "TRUE") {
     $current = 'analytics';

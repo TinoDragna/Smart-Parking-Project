@@ -1,7 +1,7 @@
 <?php
 // 1. Khởi động session để đọc dữ liệu đăng nhập
 if (session_status() === PHP_SESSION_NONE) {
-    include('session_start.php');
+    require_once("session_start.php");
 }
 session_write_close();
 
