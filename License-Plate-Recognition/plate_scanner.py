@@ -68,12 +68,12 @@ yolo_license_plate = torch.hub.load(
     path='model/LP_ocr_nano_62.pt',
     source='local'
 )
-yolo_license_plate.conf = 0.6
+yolo_license_plate.conf = 0.4
 
 # ===============================
 # 📌 Scan Plate (NO WINDOW)
 # ===============================
-def scan_plate(camera_obj=None, timeout=10):
+def scan_plate(camera_obj=None, timeout=20):
     """
     Trả về ngay khi detect được biển hợp lệ
     KHÔNG mở cửa sổ camera
@@ -81,7 +81,7 @@ def scan_plate(camera_obj=None, timeout=10):
     if camera_obj is None:
         camera_obj = entry_camera
     
-    tracker = PlateTracker(stable_interval=10, min_count=4)
+    tracker = PlateTracker(stable_interval=10, min_count=1)
     start_time = time.time()
 
     print("📸 scan_plate: START")

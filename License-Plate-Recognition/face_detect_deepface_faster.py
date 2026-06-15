@@ -17,7 +17,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 # ===============================
 MODEL_NAME = "Facenet"
 DETECTOR_BACKEND = "opencv"
-THRESHOLD = 0.3
+THRESHOLD = 0.4
 FACE_DB = "../smart_parking_data/face_img"
 
 os.makedirs(FACE_DB, exist_ok=True)
@@ -65,7 +65,7 @@ def get_embedding(img):
 # ===============================
 # CHECK-IN FACE
 # ===============================
-def check_in_face(camera_obj, timeout=6):
+def check_in_face(camera_obj, timeout=15):
 
     start = time.time()
     detect_count = 0
@@ -76,14 +76,14 @@ def check_in_face(camera_obj, timeout=6):
             continue
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = FACE_CASCADE.detectMultiScale(gray, 1.1, 6)
+        faces = FACE_CASCADE.detectMultiScale(gray, 1.1, 4)
 
         if len(faces) == 0:
             detect_count = 0
             continue
 
         detect_count += 1
-        if detect_count < 3:
+        if detect_count < 1:
             continue
 
         x, y, w, h = faces[0]
@@ -110,7 +110,7 @@ def check_in_face(camera_obj, timeout=6):
 # ===============================
 # CHECK-OUT FACE
 # ===============================
-def check_out_face(face_entry_path, camera_obj, timeout=6):
+def check_out_face(face_entry_path, camera_obj, timeout=15):
 
     # ===== LOAD ENTRY EMBEDDING =====
     entry_emb = get_embedding(face_entry_path)
@@ -132,14 +132,14 @@ def check_out_face(face_entry_path, camera_obj, timeout=6):
             continue
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = FACE_CASCADE.detectMultiScale(gray, 1.1, 6)
+        faces = FACE_CASCADE.detectMultiScale(gray, 1.1, 4)
 
         if len(faces) == 0:
             detect_count = 0
             continue
 
         detect_count += 1
-        if detect_count < 3:
+        if detect_count < 1:
             continue
 
         x, y, w, h = faces[0]
