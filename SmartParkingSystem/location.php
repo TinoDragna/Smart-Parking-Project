@@ -1,5 +1,5 @@
 <?php 
-    session_start();   
+    require_once("session_start.php");   
     if($_SESSION['LoginInto'] == "TRUE") {
       $current = 'location';
         require_once("includes/header.php");

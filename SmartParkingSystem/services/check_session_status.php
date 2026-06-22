@@ -1,5 +1,5 @@
 <?php
-session_start();
+include('session_start.php');
 require_once("db_connect.php");
 
 if (isset($_SESSION['Role']) && $_SESSION['Role'] == 'User' && isset($_SESSION['HistoryID'])) {

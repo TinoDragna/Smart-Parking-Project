@@ -1,5 +1,5 @@
 <?php
-session_start();
+include('session_start.php');
 // CHỈ cho phép Admin truy cập
 if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($_SESSION['Role']) && $_SESSION['Role'] == "Admin") {
     $current = 'video';
@@ -73,12 +73,23 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
                 <!-- TOP: Camera Feed -->
                 <div style="text-align: center; margin-top: 10px;">
                     <h5 style="color: #555;">Live Camera Feed</h5>
-                    <!-- Wrap camera in a container to limit max width on large screens -->
-                    <div
-                        style="max-width: 640px; margin: 0 auto; border: 2px solid #006289; border-radius: 5px; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center; height: 360px;">
-                        <img id="live_video" src="http://127.0.0.1:5001/video_feed"
-                            alt="Live Camera Feed Bị Mất Kết Nối"
-                            style="width: 100%; height: auto; max-height: 100%; object-fit: contain;">
+                    <div class="row" style="margin: 0; justify-content: center;">
+                        <div class="col-sm-6" style="padding: 5px;">
+                            <h6 style="color: #006289; font-weight: bold;">Entrance Gate</h6>
+                            <div style="border: 2px solid #006289; border-radius: 5px; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center; height: 240px;">
+                                <img id="live_video_entry" src="https://iot.eiu.com.vn/pi5/?action=stream"
+                                    alt="Entrance Camera Offline"
+                                    style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        </div>
+                        <div class="col-sm-6" style="padding: 5px;">
+                            <h6 style="color: #006289; font-weight: bold;">Exit Gate</h6>
+                            <div style="border: 2px solid #006289; border-radius: 5px; overflow: hidden; background-color: #000; display: flex; align-items: center; justify-content: center; height: 240px;">
+                                <img id="live_video_exit" src="https://iot.eiu.com.vn/pi5Picam/stream.mjpg"
+                                    alt="Exit Camera Offline"
+                                    style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -217,7 +228,7 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
                     document.getElementById('entry_rfid').textContent = rfid || "--";
 
                     // Thay '172.16.10.157' bằng IP LAN thực tế của máy chủ web
-                    const serverIP = "localhost:8080";
+                    const serverIP = "172.16.10.168";//localhost:8080
                     if (rfid && plate && rfid !== "--" && plate !== "--") {
                         const qrLink = `http://${serverIP}/Smart-Parking-Project/SmartParkingSystem/qr_login.php?rfid=${rfid}&plate=${plate}`;
                         // Dùng API miễn phí để tạo ảnh QR
@@ -241,7 +252,7 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
 
     // Fetch terminal logs from python flask server
     function fetchTerminalLogs() {
-        fetch('http://127.0.0.1:5001/logs')
+        fetch('http://127.0.0.1:5001/logs')//('http://172.16.10.168:5001/logs')
             .then(response => response.json())
             .then(logs => {
                 const terminal = document.getElementById('terminal_logs');

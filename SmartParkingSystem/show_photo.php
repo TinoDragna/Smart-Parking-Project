@@ -1,6 +1,6 @@
 <!-- Show images in folder without paging - modified by skyblue -->
 <?php
-session_start();
+include('session_start.php');
 if ($_SESSION['LoginInto'] == "TRUE") {
     $current = 'data';
     require_once("includes/header.php");

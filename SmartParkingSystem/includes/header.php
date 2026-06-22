@@ -72,10 +72,10 @@
                         <ul class="sub-menu">
                             <li><a href="/Smart-Parking-Project/SmartParkingSystem/data.php"
                                     style="font-family: 'Saira', sans-serif;font-weight: bold;">Data</a></li>
-                            <li><a href="/Smart-Parking-Project/SmartParkingSystem/show_photo.php"
-                                    style="font-family: 'Saira', sans-serif;font-weight: bold;">Image</a></li>
-                            <li><a href="/Smart-Parking-Project/SmartParkingSystem/show_video.php"
-                                    style="font-family: 'Saira', sans-serif;font-weight: bold;">Video</a></li>
+                            <li><a href="/Smart-Parking-Project/SmartParkingSystem/analytics.php"
+                                    style="font-family: 'Saira', sans-serif;font-weight: bold;">Analytics</a></li>
+                            <li><a href="/Smart-Parking-Project/SmartParkingSystem/show_camera.php"
+                                    style="font-family: 'Saira', sans-serif;font-weight: bold;">Camera</a></li>
                             <!-- user -->
                             <li><a href="/Smart-Parking-Project/SmartParkingSystem/user_payment.php"
                                     style="font-family: 'Saira', sans-serif;font-weight: bold;">Payment User</a></li>
@@ -89,7 +89,7 @@
                     } ?>><a
                             href="/Smart-Parking-Project/SmartParkingSystem/location.php"
                             style="font-family: sans-serif;font-weight: bold;">Location</a></li>
-                    <li><a href="/Smart-Parking-Project/SmartParkingSystem/index.php?logout='1'"
+                    <li><a href="/Smart-Parking-Project/SmartParkingSystem/home.php?logout='1'"
                             style="font-family: sans-serif;font-weight: bold;">Logout</a></li>
                 </ul>
             </div>

@@ -1,32 +1,38 @@
 <?php
+require_once("../session_start.php");
+include("connectSQL.php");
 
-if(isset($_POST['Login'])){
-
-	include("connectSQL.php");
-
- 	$Email = $_POST["Email"];
- 	$Password = $_POST["Password"];
-
-	$result = mysqli_query($conn,"SELECT * FROM  information where Email like '$Email' and Password like '$Password';");
-
-	if (mysqli_num_rows($result)>0) {
-		session_start();// Khởi tạo Session
-		$_SESSION['LoginInto']="TRUE";
-		$_SESSION['Role'] = "Admin";
-		header('Location: /Smart-Parking-Project/SmartParkingSystem/index.php');
-
-		$conn->close();
-	}
-	else
-	{
-		$conn->close();
-		echo "login no success";
-	}
+if (!isset($_POST['Email']) || !isset($_POST['Password'])) {
+    header("Location: ../login.php");
+    exit();
 }
 
-if(isset($_POST['Register'])) {
-	header('Location: /Smart-Parking-Project/SmartParkingSystem/register.php');
+$email = $_POST['Email'];
+$password = $_POST['Password'];
+
+$stmt = $conn->prepare("SELECT * FROM information WHERE Email = ? LIMIT 1");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+
+$result = $stmt->get_result();
+
+if ($row = $result->fetch_assoc()) {
+
+    if (password_verify($password, $row['Password'])) {
+
+        $_SESSION['LoginInto'] = "TRUE";
+        $_SESSION['Role'] = $row['Role'] ?? 'Admin';
+        session_regenerate_id(true);
+
+        header("Location: ../home.php");
+        exit();
+    }
+
+    session_destroy();
+    header("Location: ../login.php?error=wrong");
+    exit();
+
+} else {
+    header("Location: ../login.php?error=notfound");
+    exit();
 }
-
-
-?>

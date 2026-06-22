@@ -1,7 +1,11 @@
 <?php
 
 //include 'php/draw.php';
-session_start();
+require_once("session_start.php");
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
 //include('php/conn2.php');
 if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($_SESSION['Role']) && $_SESSION['Role'] == "Admin") {
@@ -41,13 +45,15 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
 			<div class="row" style="margin: 0;">
 				<div class="col-sm-6" style="padding: 5px;">
 					<h4>Entry gate</h4>
-					<iframe width="100%" height="240" style="border: 2px solid green; border-radius: 5px; overflow: hidden;" scrolling="yes"
-						src="https://iot.eiu.com.vn/picam/cam_pic_new.php?pDelay=40000"></iframe>
+					<div style="border: 2px solid green; border-radius: 5px; overflow: hidden; background: #000; height: 240px; display: flex; align-items: center; justify-content: center;">
+						<img src="https://iot.eiu.com.vn/pi5/?action=stream" alt="Entry Gate Stream" style="width: 100%; height: 100%; object-fit: cover;">
+					</div>
 				</div>
 				<div class="col-sm-6" style="padding: 5px;">
 					<h4>Exit gate</h4>
-					<iframe width="100%" height="240" style="border: 2px solid red; border-radius: 5px; overflow: hidden;" scrolling="no"
-						src="http://172.16.10.170:81/stream"></iframe>
+					<div style="border: 2px solid red; border-radius: 5px; overflow: hidden; background: #000; height: 240px; display: flex; align-items: center; justify-content: center;">
+						<img src="https://iot.eiu.com.vn/pi5Picam/stream.mjpg" alt="Exit Gate Stream" style="width: 100%; height: 100%; object-fit: cover;">
+					</div>
 				</div>
 			</div>
 		</div> <!-- end of col-6 -->
@@ -262,12 +268,14 @@ if (isset($_SESSION['LoginInto']) && $_SESSION['LoginInto'] == "TRUE" && isset($
 	}
 
 	function sendCommand(action) {
+		const csrfToken = "<?php echo $_SESSION['csrf_token'] ?? ''; ?>";
 		fetch("mqtt_control.php", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/x-www-form-urlencoded"
 			},
-			body: "action=" + action
+			// body: "action=" + action
+			body: "action=" + action + "&csrf_token=" + encodeURIComponent(csrfToken)
 		})
 			.then(response => response.text())
 			.then(result => {

@@ -6,7 +6,7 @@ import os
 import time
 from datetime import datetime
 from collections import defaultdict
-from camera import camera
+from camera import entry_camera, exit_camera
 
 import function.utils_rotate as utils_rotate
 import function.helper as helper
@@ -68,25 +68,41 @@ yolo_license_plate = torch.hub.load(
     path='model/LP_ocr_nano_62.pt',
     source='local'
 )
-yolo_license_plate.conf = 0.6
+yolo_license_plate.conf = 0.4
 
 # ===============================
 # 📌 Scan Plate (NO WINDOW)
 # ===============================
-def scan_plate(timeout=10):
+def scan_plate(camera_obj=None, timeout=20):
     """
     Trả về ngay khi detect được biển hợp lệ
     KHÔNG mở cửa sổ camera
     """
+    if camera_obj is None:
+        camera_obj = entry_camera
     
-    tracker = PlateTracker(stable_interval=10, min_count=4)
+    tracker = PlateTracker(stable_interval=10, min_count=1)
     start_time = time.time()
 
     print("📸 scan_plate: START")
 
+    for _ in range(10):
+        camera_obj.read()
+        time.sleep(0.01)
+
+    if hasattr(camera_obj, 'read'):
+        use_cam_service = True
+    else:
+        use_cam_service = False
+        cap = cv2.VideoCapture(camera_obj)
+
     while time.time() - start_time < timeout:
-        ret, frame = camera.read()
-        if not ret:
+        if use_cam_service:
+            ret, frame = camera_obj.read()
+        else:
+            ret, frame = cap.read()
+
+        if not ret or frame is None:
             continue
 
         plates = yolo_LP_detect(frame, size=640)
@@ -128,8 +144,12 @@ def scan_plate(timeout=10):
                     cv2.imwrite(min_crop_path, crop_img)
 
                     print(f"✅ LPR OK: {confirmed_plate}")
+                    if not use_cam_service:
+                        cap.release()
                     return full_crop_path, min_crop_path, confirmed_plate
-
+    
+    if not use_cam_service:
+        cap.release()
     print("⚠ LPR TIMEOUT")
     return None, None, None
 
