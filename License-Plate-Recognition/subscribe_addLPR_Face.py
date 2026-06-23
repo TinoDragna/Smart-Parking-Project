@@ -275,10 +275,16 @@ def exit_worker(rfid, history_id, slot_id, entry_plate, face_entry_path):
         log("⛔ EXIT LPR FAIL")
         return
 
-    if entry_plate and norm_plate(plate_exit) != entry_plate:
+    # 🟢 SỬA TẠI ĐÂY: Bọc norm_plate() cho CẢ HAI bên để triệt tiêu toàn bộ dấu cách, gạch ngang
+    cleaned_plate_entry = norm_plate(entry_plate)
+    cleaned_plate_exit = norm_plate(plate_exit)
+
+    log(f"🔍 Đối soát biển số: [VÀO: {cleaned_plate_entry}] vs [RA: {cleaned_plate_exit}]")
+
+    if cleaned_plate_entry and cleaned_plate_exit != cleaned_plate_entry:
         write_log("EXIT", "LPR_MISMATCH", rfid)
         client.publish("parking/gate/cmd", "DENY_EXIT")
-        log("⛔ EXIT LPR MISMATCH")
+        log(f"⛔ EXIT LPR MISMATCH ({cleaned_plate_exit} != {cleaned_plate_entry})")
         return
 
     # --- FACE CHECK-OUT (MATCH ĐÚNG NGƯỜI ENTRY) ---
@@ -325,12 +331,15 @@ def exit_worker(rfid, history_id, slot_id, entry_plate, face_entry_path):
             WHERE HistoryID=%s
             LIMIT 1
         """, (history_id,))
-        if cur.fetchone():
+        existing_payment = cur.fetchone()
+        
+        if existing_payment:
             log(f"ℹ PAYMENT already exists for HISTORY {history_id}")
             set_current_exit_context({
                 "rfid": rfid,
                 "history_id": history_id,
-                "slot_id": slot_id
+                "slot_id": slot_id,
+                "payment_id": existing_payment["PaymentID"]
             })
             return
 
@@ -412,9 +421,21 @@ def check_paid_and_open():
 
     except Exception as e:
         log(f"❌ PAYMENT CHECK ERROR: {e}")
+        # 🟢 SỬA TẠI ĐÂY: Nếu lỗi mất kết nối MySQL (Mã lỗi 2013 hoặc 'Lost connection')
+        if "2013" in str(e) or "Lost connection" in str(e) or "link" in str(e).lower():
+            global _db_connection
+            with db_lock:
+                try:
+                    if _db_connection:
+                        _db_connection.close()
+                except:
+                    pass
+                _db_connection = None # Reset về None để lượt sau get_db_connection() ép tạo kết nối mới tinh
+                log("🔌 [Database Recovery] Đã hủy kết nối lỗi, sẵn sàng tái tạo ở chu kỳ sau.")
 
         
 def send_web_heartbeat(mqtt_client):
+    global _db_connection
     while True:
         try:
             conn = get_db_connection()
@@ -423,6 +444,9 @@ def send_web_heartbeat(mqtt_client):
             mqtt_client.publish("parking/system/heartbeat", "ALIVE")
         except Exception as e:
             log(f"⚠ Web/DB đang lỗi, dừng gửi heartbeat: {e}")
+            # 🟢 SỬA TẠI ĐÂY: Giải phóng kết nối lỗi để luồng Heartbeat không bị treo cứng
+            with db_lock:
+                _db_connection = None 
         time.sleep(3)
 
 # =====================================================

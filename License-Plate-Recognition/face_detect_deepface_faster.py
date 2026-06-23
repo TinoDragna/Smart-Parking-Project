@@ -4,6 +4,7 @@ from deepface import DeepFace
 import os
 from datetime import datetime
 import time
+import urllib.request
 from camera import entry_camera, exit_camera
 
 # ===============================
@@ -17,7 +18,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 # ===============================
 MODEL_NAME = "Facenet"
 DETECTOR_BACKEND = "opencv"
-THRESHOLD = 0.4
+THRESHOLD = 0.37
 FACE_DB = "../smart_parking_data/face_img"
 
 os.makedirs(FACE_DB, exist_ok=True)
@@ -29,12 +30,31 @@ print("🔄 Loading DeepFace model...")
 model = DeepFace.build_model(MODEL_NAME)
 print("✅ Model loaded")
 
-# ===============================
-# LOAD FACE CASCADE ONCE
-# ===============================
-FACE_CASCADE = cv2.CascadeClassifier(
-    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-)
+# =====================================================
+# LOAD DNN FACE DETECTOR ONCE (ĐÃ ĐỔI LINK CHUẨN)
+# =====================================================
+proto_path = "deploy.prototxt"
+model_path = "res10_300x300_ssd_iter_140000.caffemodel"
+
+# Cấu hình Header giả lập trình duyệt để tránh bị GitHub chặn tải
+opener = urllib.request.build_opener()
+opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+urllib.request.install_opener(opener)
+
+if not os.path.exists(proto_path):
+    print("📥 Downloading face detector configuration (deploy.prototxt)...")
+    url_proto = "https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy.prototxt"
+    urllib.request.urlretrieve(url_proto, proto_path)
+
+if not os.path.exists(model_path):
+    print("📥 Downloading face detector weights (res10_300x300_ssd)...")
+    # LINK ĐÃ SỬA CHUẨN ĐƯỜNG DẪN TRÊN GITHUB OPENCV
+    url_model = "https://raw.githubusercontent.com/opencv/opencv_3rdparty/dnn_samples_face_detector_20170830/res10_300x300_ssd_iter_140000.caffemodel"
+    urllib.request.urlretrieve(url_model, model_path)
+
+NET = cv2.dnn.readNetFromCaffe(proto_path, model_path)
+print("✅ DNN Face Detector loaded")
+
 
 # ===============================
 # UTILS
@@ -45,9 +65,6 @@ def cosine_distance(e1, e2):
     return 1 - np.dot(e1, e2) / (np.linalg.norm(e1) * np.linalg.norm(e2))
 
 
-# ===============================
-# FIX 2: SAFE EMBEDDING FUNCTION
-# ===============================
 def get_embedding(img):
     try:
         rep = DeepFace.represent(
@@ -60,6 +77,37 @@ def get_embedding(img):
     except Exception as e:
         print("⚠ EMBEDDING ERROR:", e)
         return None
+
+
+def get_best_face_dnn(frame, min_confidence=0.7):
+    """Sử dụng Deep Learning SSD để tìm khuôn mặt chuẩn xác nhất, loại bỏ vật thể rác."""
+    h, w = frame.shape[:2]
+    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+    NET.setInput(blob)
+    detections = NET.forward()
+    
+    best_face = None
+    max_area = 0
+    
+    for i in range(0, detections.shape[2]):
+        confidence = detections[0, 0, i, 2]
+        if confidence > min_confidence:
+            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+            (startX, startY, endX, endY) = box.astype("int")
+            
+            startX, startY = max(0, startX), max(0, startY)
+            endX, endY = min(w - 1, endX), min(h - 1, endY)
+            
+            face_w = endX - startX
+            face_h = endY - startY
+            
+            if face_w >= 100 and face_h >= 100:
+                area = face_w * face_h
+                if area > max_area:
+                    max_area = area
+                    best_face = (startX, startY, face_w, face_h)
+                    
+    return best_face
 
 
 # ===============================
@@ -78,22 +126,17 @@ def check_in_face(camera_obj, timeout=15):
         if not ret:
             continue
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = FACE_CASCADE.detectMultiScale(gray, 1.1, 4)
+        face_box = get_best_face_dnn(frame, min_confidence=0.7)
 
-        if len(faces) == 0:
+        if face_box is None:
             detect_count = 0
             continue
 
         detect_count += 1
-        if detect_count < 5:
+        if detect_count < 8:
             continue
 
-        largest_face = max(faces, key=lambda f: f[2] * f[3])
-        x, y, w, h = largest_face
-        if w < 80 or h < 80:
-            continue
-        
+        x, y, w, h = face_box
         face = frame[y:y+h, x:x+w]
         face = cv2.resize(face, (224, 224))
 
@@ -122,7 +165,6 @@ def check_out_face(face_entry_path, camera_obj, timeout=15):
         camera_obj.read()
         time.sleep(0.01)
 
-    # ===== LOAD ENTRY EMBEDDING =====
     entry_emb = get_embedding(face_entry_path)
     if entry_emb is None:
         return {
@@ -141,21 +183,17 @@ def check_out_face(face_entry_path, camera_obj, timeout=15):
         if not ret:
             continue
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = FACE_CASCADE.detectMultiScale(gray, 1.1, 4)
+        face_box = get_best_face_dnn(frame, min_confidence=0.7)
 
-        if len(faces) == 0:
+        if face_box is None:
             detect_count = 0
             continue
 
         detect_count += 1
-        if detect_count < 5:
+        if detect_count < 8:
             continue
 
-        largest_face = max(faces, key=lambda f: f[2] * f[3])
-        x, y, w, h = largest_face
-        if w < 80 or h < 80:
-            continue
+        x, y, w, h = face_box
         face = frame[y:y+h, x:x+w]
         face = cv2.resize(face, (224, 224))
 
@@ -164,7 +202,6 @@ def check_out_face(face_entry_path, camera_obj, timeout=15):
         exit_path = os.path.join(FACE_DB, f"face_exit_{ts}.jpg")
         cv2.imwrite(exit_path, face)
 
-        # ===== FIX 3: DÙNG FILE PATH (KHÔNG DÙNG numpy) =====
         exit_emb = get_embedding(exit_path)
         if exit_emb is None:
             continue

@@ -1,61 +1,28 @@
-from PIL import Image
 import cv2
-import torch
-import torch_patch
-import os
 import time
+import os
 from datetime import datetime
 from collections import defaultdict
+
+import torch
+import torch_patch
+
 from camera import entry_camera, exit_camera
 
 import function.utils_rotate as utils_rotate
 import function.helper as helper
 
 # ===============================
-# 📌 CONFIG
+# CONFIG
 # ===============================
 FULL_CROP_PATH = "../smart_parking_data/full_crop_LP"
-os.makedirs(FULL_CROP_PATH, exist_ok=True)
-
 MIN_CROP_PATH = "../smart_parking_data/min_crop_LP"
+
+os.makedirs(FULL_CROP_PATH, exist_ok=True)
 os.makedirs(MIN_CROP_PATH, exist_ok=True)
 
 # ===============================
-# 📌 Stable Plate Tracking Logic
-# ===============================
-class PlateTracker:
-    def __init__(self, stable_interval=10, min_count=3):
-        """
-        stable_interval: thời gian gom OCR (giây)
-        min_count: số lần giống nhau để chấp nhận
-        """
-        self.stable_interval = stable_interval
-        self.min_count = min_count
-        self.plate_records = defaultdict(list)
-
-    def add_plate(self, plate_text):
-        now = time.time()
-        self.plate_records[plate_text].append(now)
-
-        # loại timestamp cũ
-        for p in list(self.plate_records.keys()):
-            self.plate_records[p] = [
-                t for t in self.plate_records[p]
-                if now - t <= self.stable_interval
-            ]
-            if not self.plate_records[p]:
-                del self.plate_records[p]
-
-        best_plate = max(self.plate_records, key=lambda k: len(self.plate_records[k]))
-        best_count = len(self.plate_records[best_plate])
-
-        if best_count >= self.min_count:
-            return best_plate
-
-        return None
-
-# ===============================
-# 📌 Load YOLO models
+# YOLO MODELS
 # ===============================
 yolo_LP_detect = torch.hub.load(
     'yolov5', 'custom',
@@ -68,88 +35,137 @@ yolo_license_plate = torch.hub.load(
     path='model/LP_ocr_nano_62.pt',
     source='local'
 )
+
 yolo_license_plate.conf = 0.4
 
+
 # ===============================
-# 📌 Scan Plate (NO WINDOW)
+# PLATE STABILIZER (FIXED)
 # ===============================
-def scan_plate(camera_obj=None, timeout=20):
-    """
-    Trả về ngay khi detect được biển hợp lệ
-    KHÔNG mở cửa sổ camera
-    """
+class PlateTracker:
+    def __init__(self, window_sec=3, min_votes=3):
+        self.window_sec = window_sec
+        self.min_votes = min_votes
+        self.buffer = []
+
+    def add(self, plate):
+        now = time.time()
+        self.buffer.append((plate, now))
+
+        # giữ dữ liệu 3 giây gần nhất
+        self.buffer = [
+            x for x in self.buffer
+            if now - x[1] <= self.window_sec
+        ]
+
+        # vote
+        votes = {}
+        for p, _ in self.buffer:
+            votes[p] = votes.get(p, 0) + 1
+
+        best = max(votes, key=votes.get)
+        if votes[best] >= self.min_votes:
+            return best
+
+        return None
+
+
+# ===============================
+# SAFE CROP (FIX IMPORTANT)
+# ===============================
+def safe_crop(frame, x1, y1, x2, y2):
+    h, w = frame.shape[:2]
+
+    x1 = max(0, x1)
+    y1 = max(0, y1)
+    x2 = min(w, x2)
+    y2 = min(h, y2)
+
+    if x2 <= x1 or y2 <= y1:
+        return None
+
+    return frame[y1:y2, x1:x2]
+
+
+# ===============================
+# OCR SINGLE PASS (FIX MAJOR BUG)
+# ===============================
+def ocr_plate(crop_img):
+    try:
+        # chỉ 1 pass → tránh nhiễu
+        text = helper.read_plate(
+            yolo_license_plate,
+            utils_rotate.deskew(crop_img, 0, 0)
+        )
+        return text
+    except:
+        return "unknown"
+
+
+# ===============================
+# MAIN FUNCTION
+# ===============================
+def scan_plate(camera_obj=None, timeout=15):
     if camera_obj is None:
         camera_obj = entry_camera
-    
-    tracker = PlateTracker(stable_interval=10, min_count=1)
-    start_time = time.time()
 
-    print("📸 scan_plate: START")
+    tracker = PlateTracker(window_sec=3, min_votes=3)
 
-    for _ in range(10):
+    print("📸 LPR START")
+
+    # warmup camera
+    for _ in range(5):
         camera_obj.read()
-        time.sleep(0.01)
+        time.sleep(0.02)
 
-    if hasattr(camera_obj, 'read'):
-        use_cam_service = True
-    else:
-        use_cam_service = False
-        cap = cv2.VideoCapture(camera_obj)
+    start = time.time()
 
-    while time.time() - start_time < timeout:
-        if use_cam_service:
-            ret, frame = camera_obj.read()
-        else:
-            ret, frame = cap.read()
-
+    while time.time() - start < timeout:
+        ret, frame = camera_obj.read()
         if not ret or frame is None:
             continue
 
-        plates = yolo_LP_detect(frame, size=640)
-        detections = plates.pandas().xyxy[0].values.tolist()
+        frame = frame.copy()
 
-        for plate in detections:
-            x1, y1, x2, y2 = map(int, plate[:4])
-            crop_img = frame[y1:y2, x1:x2]
-            if crop_img.size == 0:
+        # DETECT PLATE
+        results = yolo_LP_detect(frame, size=640)
+        detections = results.pandas().xyxy[0].values.tolist()
+
+        for det in detections:
+            x1, y1, x2, y2 = map(int, det[:4])
+
+            crop = safe_crop(frame, x1, y1, x2, y2)
+            if crop is None:
                 continue
 
-            detected_text = "unknown"
+            # OCR
+            plate = ocr_plate(crop)
 
-            for cc in range(2):
-                for ct in range(2):
-                    text = helper.read_plate(
-                        yolo_license_plate,
-                        utils_rotate.deskew(crop_img, cc, ct)
-                    )
-                    if text != "unknown":
-                        detected_text = text
-                        break
-                if detected_text != "unknown":
-                    break
+            if plate == "unknown":
+                continue
 
-            if detected_text != "unknown":
-                confirmed_plate = tracker.add_plate(detected_text)
+            confirmed = tracker.add(plate)
 
-                if confirmed_plate:
-                    ts = datetime.now().strftime("%d%m%Y_%H%M%S")
-                    full_crop_path = os.path.join(
-                        FULL_CROP_PATH, f"{confirmed_plate}_{ts}.jpg"
-                    )
-                    min_crop_path = os.path.join(
-                        MIN_CROP_PATH, f"{confirmed_plate}_{ts}.jpg"
-                    )
+            if confirmed:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-                    cv2.imwrite(full_crop_path, frame)
-                    cv2.imwrite(min_crop_path, crop_img)
+                full_path = os.path.join(
+                    FULL_CROP_PATH,
+                    f"{confirmed}_{ts}.jpg"
+                )
 
-                    print(f"✅ LPR OK: {confirmed_plate}")
-                    if not use_cam_service:
-                        cap.release()
-                    return full_crop_path, min_crop_path, confirmed_plate
-    
-    if not use_cam_service:
-        cap.release()
+                min_path = os.path.join(
+                    MIN_CROP_PATH,
+                    f"{confirmed}_{ts}.jpg"
+                )
+
+                cv2.imwrite(full_path, frame)
+                cv2.imwrite(min_path, crop)
+
+                print(f"✅ PLATE OK: {confirmed}")
+
+                return full_path, min_path, confirmed
+
     print("⚠ LPR TIMEOUT")
     return None, None, None
 
@@ -159,6 +175,6 @@ def scan_plate(camera_obj=None, timeout=20):
 # ===============================
 if __name__ == "__main__":
     f, m, p = scan_plate()
-    print("FULL:", f)
-    print("MIN :", m)
+    print("FULL :", f)
+    print("MIN  :", m)
     print("PLATE:", p)
