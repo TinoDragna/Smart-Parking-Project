@@ -492,7 +492,22 @@ def on_message(mqtt_client, userdata, msg):
                 conn = get_db_connection()
                 with conn.cursor() as cur:
                     # 🟢 Bất kể xe có vào chuồng hay không, luôn chốt TimeOut và Duration dựa vào TimeIn
+                    # 🟢 Kiểm tra xem xe này đã THANH TOÁN THÀNH CÔNG chưa trước khi kết thúc phiên
+                    conn = get_db_connection()
+                    with conn.cursor() as cur:
+                        cur.execute("""
+                            SELECT Status FROM payments 
+                            WHERE HistoryID = %s AND RFID = %s
+                            ORDER BY PaymentID DESC LIMIT 1
+                        """, (history_id, rfid_exit))
+                        payment_row = cur.fetchone()
 
+                    # Nếu chưa có hóa đơn hoặc hóa đơn chưa chuyển sang 'paid' (Vẫn là 'unpaid' hoặc bị chặn ở bước LPR/Face)
+                    if not payment_row or payment_row["Status"] != "paid":
+                        log(f"⛔ CHẶN CHỐT LỊCH SỬ: Xe RFID {rfid_exit} chưa hoàn thành thủ tục xuất bãi hợp lệ (LPR/Face lỗi hoặc chưa thanh toán)!")
+                        return
+
+                    # 🟢 NẾU ĐÃ THANH TOÁN HỢP LỆ -> CHỐT
                     cur.execute("""
                         UPDATE parkinghistory
                         SET TimeOut = NOW(),
