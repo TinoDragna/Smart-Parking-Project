@@ -43,7 +43,7 @@ yolo_license_plate.conf = 0.4
 # PLATE STABILIZER (FIXED)
 # ===============================
 class PlateTracker:
-    def __init__(self, window_sec=3, min_votes=3):
+    def __init__(self, window_sec=3, min_votes=5):
         self.window_sec = window_sec
         self.min_votes = min_votes
         self.buffer = []
@@ -92,11 +92,10 @@ def safe_crop(frame, x1, y1, x2, y2):
 # ===============================
 def ocr_plate(crop_img):
     try:
-        # chỉ 1 pass → tránh nhiễu
-        text = helper.read_plate(
-            yolo_license_plate,
-            utils_rotate.deskew(crop_img, 0, 0)
-        )
+        # Bật tham số 1 để kích hoạt changeContrast giúp nổi bật nét chữ tách biệt khỏi viền
+        deskewed_crop = utils_rotate.deskew(crop_img, 1, 0) 
+        
+        text = helper.read_plate(yolo_license_plate, deskewed_crop)
         return text
     except:
         return "unknown"
