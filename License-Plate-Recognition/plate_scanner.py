@@ -49,25 +49,37 @@ class PlateTracker:
         self.buffer = []
 
     def add(self, plate):
+        # Làm sạch chuỗi
+        plate = plate.strip().replace(" ", "").replace("-", "").upper()
+        
+        # Biển số Việt Nam chuẩn thường từ 7 đến 9 ký tự 
+        # Nếu ít hơn 7 ký tự thì khả năng cao là bị mất chữ ở đầu/cuối
+        if len(plate) < 7: 
+            return None
+
         now = time.time()
         self.buffer.append((plate, now))
 
-        # giữ dữ liệu 3 giây gần nhất
-        self.buffer = [
-            x for x in self.buffer
-            if now - x[1] <= self.window_sec
-        ]
+        # Giữ dữ liệu 3 giây gần nhất
+        self.buffer = [x for x in self.buffer if now - x[1] <= self.window_sec]
 
-        # vote
+        # Gom nhóm và đếm số lần xuất hiện
         votes = {}
         for p, _ in self.buffer:
             votes[p] = votes.get(p, 0) + 1
 
-        best = max(votes, key=votes.get)
-        if votes[best] >= self.min_votes:
-            return best
+        # Lọc ra những thằng xuất hiện ít nhất từ `min_votes` trở lên để đảm bảo không phải nhiễu ngẫu nhiên
+        candidates = [p for p, v in votes.items() if v >= self.min_votes]
 
-        return None
+        if not candidates:
+            return None
+
+        # CHIẾN THUẬT QUYẾT ĐỊNH: 
+        # Sắp xếp ưu tiên: độ dài chuỗi giảm dần (len(x)), sau đó mới đến số vote giảm dần (votes[x])
+        # Ví dụ: "30F12345" (dài 8, 5 votes) sẽ thắng "30F1234" (dài 7, 10 votes)
+        candidates.sort(key=lambda x: (len(x), votes[x]), reverse=True)
+        
+        return candidates[0]
 
 
 # ===============================
@@ -92,10 +104,11 @@ def safe_crop(frame, x1, y1, x2, y2):
 # ===============================
 def ocr_plate(crop_img):
     try:
-        # Bật tham số 1 để kích hoạt changeContrast giúp nổi bật nét chữ tách biệt khỏi viền
-        deskewed_crop = utils_rotate.deskew(crop_img, 1, 0) 
-        
-        text = helper.read_plate(yolo_license_plate, deskewed_crop)
+        # chỉ 1 pass → tránh nhiễu
+        text = helper.read_plate(
+            yolo_license_plate,
+            utils_rotate.deskew(crop_img, 0, 0)
+        )
         return text
     except:
         return "unknown"
