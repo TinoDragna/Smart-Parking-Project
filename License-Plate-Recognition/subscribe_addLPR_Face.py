@@ -477,7 +477,6 @@ def on_message(mqtt_client, userdata, msg):
                 previous = irStatus["EXIT"]
                 irStatus["EXIT"] = payload
 
-
             # Xe vừa đi qua cổng (O → X)
             if previous == "O" and payload == "X":
                 ctx = get_current_exit_context()
@@ -487,55 +486,54 @@ def on_message(mqtt_client, userdata, msg):
 
                 rfid_exit = ctx["rfid"]
                 history_id = ctx["history_id"]
-                slot_id = ctx.get("slot_id") # Lấy slot_id an toàn (có thể là None)
+                slot_id = ctx.get("slot_id")
 
+                # 🟢 GIẢI PHÁP AN TOÀN LUỒNG: Bọc chặt chẽ bằng Try/Finally để đảm bảo Cursor không bị kẹt hay nghẽn đóng
                 conn = get_db_connection()
-                with conn.cursor() as cur:
-                    # 🟢 Bất kể xe có vào chuồng hay không, luôn chốt TimeOut và Duration dựa vào TimeIn
-                    # 🟢 Kiểm tra xem xe này đã THANH TOÁN THÀNH CÔNG chưa trước khi kết thúc phiên
-                    conn = get_db_connection()
-                    with conn.cursor() as cur:
-                        cur.execute("""
-                            SELECT Status FROM payments 
-                            WHERE HistoryID = %s AND RFID = %s
-                            ORDER BY PaymentID DESC LIMIT 1
-                        """, (history_id, rfid_exit))
-                        payment_row = cur.fetchone()
+                cur = conn.cursor() # Khởi tạo cursor thủ công để kiểm soát việc đóng/mở độc lập
+                try:
+                    # 1. Kiểm tra trạng thái thanh toán
+                    cur.execute("""
+                        SELECT Status FROM payments 
+                        WHERE HistoryID = %s AND RFID = %s
+                        ORDER BY PaymentID DESC LIMIT 1
+                    """, (history_id, rfid_exit))
+                    payment_row = cur.fetchone()
 
-                    # Nếu chưa có hóa đơn hoặc hóa đơn chưa chuyển sang 'paid' (Vẫn là 'unpaid' hoặc bị chặn ở bước LPR/Face)
                     if not payment_row or payment_row["Status"] != "paid":
-                        log(f"⛔ CHẶN CHỐT LỊCH SỬ: Xe RFID {rfid_exit} chưa hoàn thành thủ tục xuất bãi hợp lệ (LPR/Face lỗi hoặc chưa thanh toán)!")
+                        log(f"⛔ CHẶN CHỐT LỊCH SỬ: Xe RFID {rfid_exit} chưa hoàn thành thủ tục xuất bãi hợp lệ!")
                         return
 
-                    # 🟢 NẾU ĐÃ THANH TOÁN HỢP LỆ -> CHỐT
+                    # 2. Tiến hành cập nhật lịch sử ra
                     cur.execute("""
                         UPDATE parkinghistory
                         SET TimeOut = NOW(),
                             Duration = TIMESTAMPDIFF(MINUTE, TimeIn, NOW())
                         WHERE HistoryID=%s
                     """, (history_id,))
+                    log(f"🕒 [Chốt giờ ra] HỢP LỆ! Đã ghi nhận TimeOut cho HistoryID: {history_id}")
 
-                    log(f"🕒 [Chốt giờ ra] Đã ghi nhận TimeOut cho HistoryID: {history_id}")
-
-
-                    # 🟢 CHỈ cập nhật chuồng nếu trước đó xe thực sự có vào chuồng (slot_id khác None)
+                    # 3. Cập nhật giải phóng chuồng (nếu có)
                     if slot_id is not None:
-
                         cur.execute("""
                             UPDATE parkingslot
                             SET Status=0, CurrentRFID=NULL
                             WHERE SlotID=%s
                         """, (slot_id,))
                         log(f"⬜ [Giải phóng chuồng] Đã dọn trống SlotID: {slot_id}")
-                    else:
-                        log("ℹ Xe này không đỗ trong chuồng định danh (hoặc đã rời chuồng trước), bỏ qua giải phóng Slot.")
 
+                    # Chỉ xóa context khi mọi câu lệnh SQL trên đã thực thi thành công hoàn toàn
+                    clear_current_exit_context()
+                    log(f"🚗 EXIT COMPLETE | RFID {rfid_exit} đã rời bãi thành công!")
 
-                clear_current_exit_context()
-                log(f"🚗 EXIT COMPLETE | RFID {rfid_exit} đã rời bãi thành công!")
-
+                except Exception as db_err:
+                    log(f"❌ LỖI TRONG QUÁ TRÌNH UPDATE LỊCH SỬ IR: {db_err}")
+                finally:
+                    try:
+                        cur.close() # 🟢 ĐẢM BẢO LUÔN ĐÓNG CURSOR DÙ CÓ LỖI HAY KHÔNG, tránh lỗi Cursor closed cho lượt sau
+                    except:
+                        pass
             return
-
         
         # -------- OFFLINE LOG SYNC FROM WEMOS --------
         if topic == "parking/log":
@@ -863,6 +861,67 @@ if saved_pending_entry:
     log(f"♻ [Hồi sinh] Khôi phục xe vừa quẹt lối VÀO: RFID {saved_pending_entry.get('rfid')}")
 
 # =====================================================
+# HTTP REALTIME HARDWARE SYNC
+# =====================================================
+def sync_hardware_realtime():
+    wemos_url = "http://172.16.10.172/status"
+    log(f"🌐 [HTTP Sync] Kết nối tới phần cứng {wemos_url}...")
+    try:
+        response = requests.get(wemos_url, timeout=3)
+        if response.status_code == 200:
+            hardware_data = response.json()
+            log(f"📥 Hiện trạng từ Wemos: {hardware_data}")
+            
+            conn = get_db_connection()
+            for slot_key, status in hardware_data.items():
+                area = slot_key[0]       
+                slot_code = slot_key[1:] 
+                db_status = 1 if status == "O" else 0
+                
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        UPDATE parkingslot 
+                        SET Status=%s 
+                        WHERE Area=%s AND SlotCode=%s
+                    """, (db_status, area, slot_code))
+                
+                with state_lock:
+                    slotStatus[slot_key] = status
+            log(f"⚡ [HTTP Sync] Khởi tạo đồng bộ phần cứng hoàn tất!")
+    except Exception as e:
+        log(f"⚠ Bỏ qua HTTP Sync: {e}. Hệ thống vận hành bằng MQTT.")
+
+sync_hardware_realtime()
+# =====================================================
+
+client.loop_start()
+threading.Thread(target=send_web_heartbeat, args=(client,), daemon=True).start()
+
+# Thêm dòng này ngay TRƯỚC KHI khởi chạy Flask Thread để ép tắt log Werkzeug
+logging.getLogger('werkzeug').setLevel(logging.ERROR)
+flask_thread = threading.Thread(
+    target=lambda: app.run(host='0.0.0.0', port=5001, threaded=True, use_reloader=False),
+    daemon=True
+)
+flask_thread.start()
+log("🌐 Flask Web Stream started on http://0.0.0.0:5001/video_feed_entry and /video_feed_exit")
+
+try:
+    while True:
+        check_paid_and_open()
+        time.sleep(2)
+except KeyboardInterrupt:
+    log("🛑 KeyboardInterrupt")
+finally:
+    log("📷 Releasing camera")
+    entry_camera.release()
+    exit_camera.release()
+    try:
+        if _db_connection:
+            _db_connection.close()
+    except:
+        pass
+    log("👋 Shutdown complete")===========================================
 # HTTP REALTIME HARDWARE SYNC
 # =====================================================
 def sync_hardware_realtime():
