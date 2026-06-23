@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th6 15, 2026 lúc 11:56 AM
--- Phiên bản máy phục vụ: 10.4.24-MariaDB
--- Phiên bản PHP: 7.4.29
+-- Thời gian đã tạo: Th6 15, 2026 lúc 05:26 AM
+-- Phiên bản máy phục vụ: 10.4.32-MariaDB
+-- Phiên bản PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -33,7 +33,7 @@ CREATE TABLE `gatelog` (
   `Action` varchar(10) DEFAULT NULL,
   `Time` datetime DEFAULT NULL,
   `TriggeredBy` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `gatelog`
@@ -292,25 +292,150 @@ INSERT INTO `gatelog` (`LogID`, `GateType`, `Action`, `Time`, `TriggeredBy`) VAL
 (250, 'EXIT', 'FACE_MISMA', '2025-12-23 16:54:50', 'TESTRFID02'),
 (251, 'EXIT', 'FACE_MISMA', '2025-12-23 16:55:43', 'TESTRFID02'),
 (252, 'EXIT', 'FACE_MISMA', '2025-12-23 16:57:14', 'TESTRFID02'),
-(253, 'ENTRY', 'LPR_FAIL', '2026-04-01 14:01:35', 'TESTRFID02'),
-(254, 'ENTRY', 'OPEN', '2026-04-01 14:02:15', 'TESTRFID02'),
-(255, 'ENTRY', 'RFID_INVAL', '2026-06-15 10:47:01', 'D3E9FD13'),
-(256, 'ENTRY', 'RFID_INVAL', '2026-06-15 10:47:51', 'D3E9FD13'),
-(257, 'ENTRY', 'ALREADY_IN', '2026-06-15 10:50:34', 'D3E9FD13'),
-(258, 'ENTRY', 'OPEN', '2026-06-15 10:51:30', 'D3E9FD13'),
-(259, 'ENTRY', 'LPR_FAIL', '2026-06-15 10:53:03', 'D3E9FD13'),
-(260, 'ENTRY', 'LPR_FAIL', '2026-06-15 10:53:16', 'D3E9FD13'),
-(261, 'ENTRY', 'LPR_FAIL', '2026-06-15 10:54:13', 'D3E9FD13'),
-(262, 'ENTRY', 'LPR_FAIL', '2026-06-15 10:54:43', 'D3E9FD13'),
-(263, 'ENTRY', 'LPR_FAIL', '2026-06-15 10:55:22', 'D3E9FD13'),
-(264, 'ENTRY', 'LPR_FAIL', '2026-06-15 11:00:04', 'D3E9FD13'),
-(265, 'ENTRY', 'LPR_FAIL', '2026-06-15 11:00:47', 'D3E9FD13'),
-(266, 'ENTRY', 'LPR_FAIL', '2026-06-15 11:01:36', 'D3E9FD13'),
-(267, 'ENTRY', 'LPR_FAIL', '2026-06-15 11:03:40', 'D3E9FD13'),
-(268, 'ENTRY', 'LPR_FAIL', '2026-06-15 11:04:25', 'D3E9FD13'),
-(269, 'ENTRY', 'LPR_FAIL', '2026-06-15 14:15:09', 'D3E9FD13'),
-(270, 'ENTRY', 'PARKING_FU', '2026-06-15 14:36:17', 'D3E9FD13'),
-(271, 'ENTRY', 'FACE_FAIL', '2026-06-15 14:37:32', 'D3E9FD13');
+(253, 'ENTRY', 'LPR_FAIL', '2025-12-24 14:06:57', 'TESTRFID02'),
+(254, 'ENTRY', 'LPR_FAIL', '2025-12-24 14:08:12', 'TESTRFID02'),
+(255, 'ENTRY', 'LPR_FAIL', '2025-12-24 14:19:26', 'TESTRFID02'),
+(256, 'ENTRY', 'OPEN', '2025-12-24 14:19:44', 'TESTRFID02'),
+(257, 'EXIT', 'LPR_FAIL', '2025-12-24 14:22:19', 'TESTRFID02'),
+(258, 'EXIT', 'LPR_FAIL', '2025-12-24 14:24:13', 'TESTRFID02'),
+(259, 'EXIT', 'LPR_FAIL', '2025-12-24 14:24:49', 'TESTRFID02'),
+(260, 'EXIT', 'LPR_MISMAT', '2025-12-24 14:25:42', 'TESTRFID02'),
+(261, 'EXIT', 'LPR_MISMAT', '2025-12-24 14:26:34', 'TESTRFID02'),
+(262, 'EXIT', 'LPR_MISMAT', '2025-12-24 14:34:08', 'TESTRFID02'),
+(263, 'EXIT', 'LPR_MISMAT', '2025-12-24 14:34:20', 'TESTRFID02'),
+(264, 'EXIT', 'LPR_MISMAT', '2025-12-24 14:34:29', 'TESTRFID02'),
+(265, 'EXIT', 'LPR_MISMAT', '2025-12-24 14:34:49', 'TESTRFID02'),
+(266, 'ENTRY', 'FACE_FAIL', '2025-12-24 14:36:12', 'TESTRFID02'),
+(267, 'ENTRY', 'LPR_FAIL', '2025-12-24 14:36:25', 'TESTRFID02'),
+(268, 'ENTRY', 'LPR_FAIL', '2025-12-24 14:36:39', 'TESTRFID02'),
+(269, 'ENTRY', 'LPR_FAIL', '2025-12-24 14:37:00', 'TESTRFID02'),
+(270, 'ENTRY', 'LPR_FAIL', '2025-12-24 14:37:11', 'TESTRFID02'),
+(271, 'ENTRY', 'LPR_FAIL', '2025-12-24 14:37:21', 'TESTRFID02'),
+(272, 'ENTRY', 'OPEN', '2025-12-24 14:38:30', 'TESTRFID02'),
+(273, 'EXIT', 'LPR_MISMAT', '2025-12-24 14:38:42', 'TESTRFID02'),
+(274, 'EXIT', 'FACE_MISMA', '2025-12-24 14:39:00', 'TESTRFID02'),
+(275, 'EXIT', 'FACE_MISMA', '2025-12-24 14:39:22', 'TESTRFID02'),
+(276, 'EXIT', 'FACE_MISMA', '2025-12-24 14:45:08', 'TESTRFID02'),
+(277, 'ENTRY', 'OPEN', '2025-12-24 14:45:34', 'TESTRFID02'),
+(278, 'EXIT', 'OPEN', '2025-12-24 14:45:44', 'TESTRFID02'),
+(279, 'ENTRY', 'OPEN', '2025-12-24 14:47:05', 'TESTRFID02'),
+(280, 'EXIT', 'OPEN', '2025-12-24 14:47:27', 'TESTRFID02'),
+(281, 'ENTRY', 'RFID_INVAL', '2025-12-25 10:36:19', 'D3E9FD13'),
+(282, 'ENTRY', 'OPEN', '2025-12-25 10:39:33', 'D3E9FD13'),
+(283, 'ENTRY', 'ALREADY_IN', '2025-12-25 11:29:28', 'D3E9FD13'),
+(284, 'ENTRY', 'OPEN', '2025-12-26 15:11:13', '5E68200E'),
+(285, 'ENTRY', 'LPR_FAIL', '2025-12-26 15:24:53', 'D3E9FD13'),
+(286, 'ENTRY', 'FACE_FAIL', '2025-12-26 15:25:50', 'D3E9FD13'),
+(287, 'ENTRY', 'FACE_FAIL', '2025-12-26 15:26:09', 'D3E9FD13'),
+(288, 'ENTRY', 'OPEN', '2025-12-26 15:26:22', 'D3E9FD13'),
+(289, 'ENTRY', 'FACE_FAIL', '2025-12-26 15:33:47', 'TESTRFID01'),
+(290, 'ENTRY', 'OPEN', '2025-12-26 15:39:27', 'TESTRFID01'),
+(291, 'ENTRY', 'PARKING_FU', '2025-12-26 15:43:57', 'TESTRFID01'),
+(292, 'EXIT', 'NO_ACTIVE_', '2025-12-26 15:45:36', 'TESTRFID01'),
+(293, 'EXIT', 'LPR_MISMAT', '2025-12-26 15:50:07', 'D3E9FD13'),
+(294, 'EXIT', 'LPR_MISMAT', '2025-12-26 15:50:21', 'D3E9FD13'),
+(295, 'ENTRY', 'ALREADY_IN', '2025-12-26 15:52:04', '5E68200E'),
+(296, 'ENTRY', 'ALREADY_IN', '2025-12-26 15:53:04', '5E68200E'),
+(297, 'EXIT', 'OPEN', '2025-12-26 15:53:30', '5E68200E'),
+(298, 'EXIT', 'NO_ACTIVE_', '2025-12-26 15:55:32', '5E68200E'),
+(299, 'EXIT', 'FACE_MISMA', '2025-12-26 15:56:37', 'D3E9FD13'),
+(300, 'ENTRY', 'OPEN', '2026-03-17 11:58:00', '5E68200E'),
+(301, 'ENTRY', 'ALREADY_IN', '2026-03-17 12:26:38', '5E68200E'),
+(302, 'ENTRY', 'OPEN', '2026-03-17 12:28:03', '5E68200E'),
+(303, 'ENTRY', 'OPEN', '2026-03-17 13:22:14', '5E68200E'),
+(304, 'EXIT', 'NO_ACTIVE_', '2026-03-17 13:42:42', '5E68200E'),
+(305, 'ENTRY', 'OPEN', '2026-03-17 13:42:58', '5E68200E'),
+(306, 'ENTRY', 'ALREADY_IN', '2026-03-17 13:44:55', '5E68200E'),
+(307, 'EXIT', 'LPR_MISMAT', '2026-03-17 13:50:15', '5E68200E'),
+(308, 'EXIT', 'LPR_MISMAT', '2026-03-17 13:50:35', '5E68200E'),
+(309, 'EXIT', 'NO_ACTIVE_', '2026-03-17 13:52:28', '5E68200E'),
+(310, 'EXIT', 'NO_ACTIVE_', '2026-03-17 13:52:39', '5E68200E'),
+(311, 'ENTRY', 'OPEN', '2026-03-17 13:53:16', '5E68200E'),
+(312, 'EXIT', 'NO_ACTIVE_', '2026-03-17 14:53:47', '5E68200E'),
+(313, 'ENTRY', 'OPEN', '2026-03-17 14:53:58', '5E68200E'),
+(314, 'ENTRY', 'OPEN', '2026-03-17 14:55:53', 'TESTRFID02'),
+(315, 'EXIT', 'LPR_MISMAT', '2026-03-17 14:57:21', '5E68200E'),
+(316, 'EXIT', 'FACE_MISMA', '2026-03-17 14:57:49', '5E68200E'),
+(317, 'EXIT', 'FACE_MISMA', '2026-03-17 14:58:05', '5E68200E'),
+(318, 'EXIT', 'FACE_MISMA', '2026-03-17 14:58:58', '5E68200E'),
+(319, 'EXIT', 'FACE_MISMA', '2026-03-17 14:59:34', '5E68200E'),
+(320, 'EXIT', 'FACE_MISMA', '2026-03-17 15:00:22', '5E68200E'),
+(321, 'ENTRY', 'RFID_INVAL', '2026-04-01 16:07:52', 'F36E5428'),
+(322, 'ENTRY', 'RFID_INVAL', '2026-04-01 16:10:28', 'F36E5428'),
+(323, 'ENTRY', 'ALREADY_IN', '2026-04-01 16:36:01', '90172383'),
+(324, 'ENTRY', 'LPR_FAIL', '2026-04-01 16:36:07', 'D3E9FD13'),
+(325, 'ENTRY', 'RFID_INVAL', '2026-04-01 16:36:34', 'F36E5428'),
+(326, 'ENTRY', 'LPR_FAIL', '2026-04-01 16:37:07', 'D3E9FD13'),
+(327, 'ENTRY', 'ALREADY_IN', '2026-04-01 16:37:17', '90172383'),
+(328, 'ENTRY', 'LPR_FAIL', '2026-04-01 17:29:15', 'D3E9FD13'),
+(329, 'ENTRY', 'OPEN', '2026-04-01 17:29:57', 'D3E9FD13'),
+(330, 'ENTRY', 'ALREADY_IN', '2026-04-01 17:40:00', 'D3E9FD13'),
+(331, 'ENTRY', 'OPEN', '2026-04-01 17:41:04', 'D3E9FD13'),
+(332, 'EXIT', 'OPEN', '2026-04-01 17:42:02', 'D3E9FD13'),
+(333, 'ENTRY', 'RFID_INVAL', '2026-04-01 17:57:15', 'F36E5428'),
+(334, 'ENTRY', 'OPEN', '2026-04-01 17:57:39', 'D3E9FD13'),
+(335, 'ENTRY', 'RFID_INVAL', '2026-04-01 18:13:44', 'F36E5428'),
+(336, 'ENTRY', 'RFID_INVAL', '2026-04-01 18:13:54', 'F36E5428'),
+(337, 'ENTRY', 'LPR_FAIL', '2026-04-01 18:14:11', 'D3E9FD13'),
+(338, 'ENTRY', 'OPEN', '2026-04-01 18:14:33', 'D3E9FD13'),
+(339, 'ENTRY', 'RFID_INVAL', '2026-04-01 18:24:19', 'F36E5428'),
+(340, 'ENTRY', 'LPR_FAIL', '2026-04-01 18:24:44', 'D3E9FD13'),
+(341, 'ENTRY', 'OPEN', '2026-04-01 18:25:00', 'D3E9FD13'),
+(342, 'ENTRY', 'RFID_INVAL', '2026-04-01 18:39:49', 'F36E5428'),
+(343, 'ENTRY', 'OPEN', '2026-04-01 18:40:09', 'D3E9FD13'),
+(344, 'ENTRY', 'RFID_INVAL', '2026-04-01 18:59:19', 'F36E5428'),
+(345, 'ENTRY', 'LPR_FAIL', '2026-04-01 18:59:54', '90172383'),
+(346, 'ENTRY', 'OPEN', '2026-04-02 10:42:36', 'D3E9FD13'),
+(347, 'ENTRY', 'OPEN', '2026-04-02 10:49:34', 'D3E9FD13'),
+(348, 'EXIT', 'OPEN', '2026-04-02 10:50:53', 'D3E9FD13'),
+(349, 'ENTRY', 'ALREADY_IN', '2026-04-02 11:17:06', 'D3E9FD13'),
+(350, 'ENTRY', 'PARKING_FU', '2026-04-02 11:22:19', 'D3E9FD13'),
+(351, 'ENTRY', 'LPR_FAIL', '2026-04-02 14:52:56', 'D3E9FD13'),
+(352, 'ENTRY', 'LPR_FAIL', '2026-04-02 14:57:53', 'D3E9FD13'),
+(353, 'ENTRY', 'LPR_FAIL', '2026-04-02 15:05:56', 'D3E9FD13'),
+(354, 'ENTRY', 'LPR_FAIL', '2026-04-02 15:12:33', 'D3E9FD13'),
+(355, 'ENTRY', 'PARKING_FU', '2026-04-02 15:12:46', 'D3E9FD13'),
+(356, 'ENTRY', 'PARKING_FU', '2026-04-02 15:13:48', 'D3E9FD13'),
+(357, 'ENTRY', 'OPEN', '2026-04-02 15:14:10', 'D3E9FD13'),
+(358, 'EXIT', 'OPEN', '2026-04-02 15:15:01', 'D3E9FD13'),
+(359, 'ENTRY', 'LPR_FAIL', '2026-04-02 15:23:09', 'D3E9FD13'),
+(360, 'ENTRY', 'OPEN', '2026-04-02 15:24:07', 'D3E9FD13'),
+(361, 'EXIT', 'OPEN', '2026-04-02 15:24:52', 'D3E9FD13'),
+(362, 'ENTRY', 'OPEN', '2026-04-02 15:31:13', 'D3E9FD13'),
+(363, 'ENTRY', 'OPEN', '2026-04-02 15:34:36', 'D3E9FD13'),
+(364, 'ENTRY', 'ALREADY_IN', '2026-04-02 15:38:58', 'D3E9FD13'),
+(365, 'ENTRY', 'ALREADY_IN', '2026-04-02 15:39:08', 'D3E9FD13'),
+(366, 'ENTRY', 'OPEN', '2026-04-02 16:31:07', 'D3E9FD13'),
+(367, 'EXIT', 'OPEN', '2026-04-02 16:32:24', 'D3E9FD13'),
+(368, 'ENTRY', 'RFID_INVAL', '2026-04-02 16:35:38', 'F36E5428'),
+(369, 'ENTRY', 'PARKING_FU', '2026-04-02 16:37:40', 'D3E9FD13'),
+(370, 'ENTRY', 'OPEN', '2026-04-02 16:40:11', 'D3E9FD13'),
+(371, 'EXIT', 'FACE_MISMA', '2026-04-02 16:40:54', 'D3E9FD13'),
+(372, 'ENTRY', 'RFID_INVAL', '2026-05-28 15:21:14', '6028330C'),
+(373, 'ENTRY', 'RFID_INVAL', '2026-05-28 16:11:53', '6F8D9BBD'),
+(374, 'ENTRY', 'LPR_FAIL', '2026-05-28 16:14:20', '6F8D9BBD'),
+(375, 'ENTRY', 'OPEN', '2026-05-28 16:14:35', '6F8D9BBD'),
+(376, 'ENTRY', 'OPEN', '2026-05-28 16:17:48', '6F8D9BBD'),
+(377, 'ENTRY', 'OPEN', '2026-05-28 16:17:50', '6F8D9BBD'),
+(378, 'EXIT', 'FACE_MISMA', '2026-05-28 16:24:16', '6F8D9BBD'),
+(379, 'ENTRY', 'LPR_FAIL', '2026-06-13 16:39:09', '90172383'),
+(380, 'EXIT', 'NO_ACTIVE_', '2026-06-13 16:40:55', '90172383'),
+(381, 'ENTRY', 'LPR_FAIL', '2026-06-13 16:40:56', '90172383'),
+(382, 'ENTRY', 'LPR_FAIL', '2026-06-13 16:46:32', 'D3E9FD13'),
+(383, 'ENTRY', 'OPEN', '2026-06-13 16:47:20', 'D3E9FD13'),
+(384, 'ENTRY', 'OPEN', '2026-06-13 17:20:43', 'D3E9FD13'),
+(385, 'ENTRY', 'OPEN', '2026-06-13 17:32:41', 'D3E9FD13'),
+(386, 'EXIT', 'NO_ACTIVE_', '2026-06-13 17:33:07', 'D3E9FD13'),
+(387, 'EXIT', 'NO_ACTIVE_', '2026-06-13 17:34:02', 'D3E9FD13'),
+(388, 'ENTRY', 'OPEN', '2026-06-13 17:41:26', 'D3E9FD13'),
+(389, 'ENTRY', 'OPEN', '2026-06-13 17:46:49', 'D3E9FD13'),
+(390, 'EXIT', 'OPEN', '2026-06-13 17:47:36', 'D3E9FD13'),
+(391, 'ENTRY', 'OPEN', '2026-06-13 17:48:32', 'D3E9FD13'),
+(392, 'ENTRY', 'ALREADY_IN', '2026-06-13 18:04:57', 'D3E9FD13'),
+(393, 'ENTRY', 'ALREADY_IN', '2026-06-13 18:22:07', 'D3E9FD13'),
+(394, 'ENTRY', 'ALREADY_IN', '2026-06-13 18:22:37', 'D3E9FD13'),
+(395, 'ENTRY', 'ALREADY_IN', '2026-06-13 18:22:44', 'D3E9FD13'),
+(396, 'ENTRY', 'ALREADY_IN', '2026-06-13 18:22:49', 'D3E9FD13');
 
 -- --------------------------------------------------------
 
@@ -324,19 +449,18 @@ CREATE TABLE `information` (
   `Name` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `DateOfBirth` date NOT NULL,
   `Address` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `information`
 --
 
 INSERT INTO `information` (`Email`, `Password`, `Name`, `DateOfBirth`, `Address`) VALUES
-('vinh.phan@eiu.edu.vn', '$2y$10$Su9afjSHSLDfD2GxX8x4j.NKYxogUEM6JLS0qQqvV8EfHNdI6UnAC', 'Vinh', '2018-10-10', 'Binh Duong'),
-('khang.vo.k3set@eiu.edu.vn', '$2y$10$XpMFiCXVSRYtQpbsGbKd0eWPf3pf1wxz/tMu61ajeWZbfTKXI1vwu', 'duykhang', '1995-01-29', 'Binh Duong'),
-('thanh.tran.k2000@gmail.com', '$2y$10$KgeAP40HEf5ugMphIRI/wu9BItxBPOtO3L1SLttt7XzV03WdgirIu', 'Thanh', '1994-09-27', 'BD-BB'),
-('pvvinhbk@gmail.com', '$2y$10$qJvmqE7JSYXyE178rtOAUeHRij5VKVa7/7cpmb0F2aYtu0Xc.B/wq', 'Vinh Phan', '1984-12-08', 'Phu Hoa, TDM, BD'),
-('trang@eiu.edu.vn', '$2y$10$rDD4.pqUVgMPBfe9tuSPF.yGLVp5qGsDCVpEq9ScCGVfirOBwv53S', 'Trang', '2003-03-07', 'ABC Street'),
-('admin@eiu.edu.vn', '$2y$10$48IXNA.1IBSlg/./yVgMreC9IsJ49IGcVQo777ynufCwg4Qg/gJ2u', 'Admin', '2003-01-15', 'BInh Duong');
+('vinh.phan@eiu.edu.vn', '123456', 'Vinh', '2018-10-10', 'Binh Duong'),
+('khang.vo.k3set@eiu.edu.vn', '123456', 'duykhang', '1995-01-29', 'Binh Duong'),
+('thanh.tran.k2000@gmail.com', '123456', 'Thanh', '1994-09-27', 'BD-BB'),
+('pvvinhbk@gmail.com', 'abc@123', 'Vinh Phan', '1984-12-08', 'Phu Hoa, TDM, BD'),
+('trang@gmail.com', '123456', '', '0000-00-00', '');
 
 -- --------------------------------------------------------
 
@@ -358,60 +482,70 @@ CREATE TABLE `parkinghistory` (
   `ImageFullExit` varchar(255) DEFAULT NULL,
   `PlateNumberExit` varchar(32) DEFAULT NULL,
   `FaceImageExit` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `parkinghistory`
 --
 
 INSERT INTO `parkinghistory` (`HistoryID`, `RFID`, `SlotID`, `TimeIn`, `TimeOut`, `Duration`, `Fee`, `ImageFullEntry`, `PlateNumberEntry`, `FaceImageEntry`, `ImageFullExit`, `PlateNumberExit`, `FaceImageExit`) VALUES
-(13, 'TESTRFID01', 1, '2025-12-19 15:38:21', '2025-12-19 15:43:29', 5, '50.00', '../smart_parking_data/full_crop_LP\\98B3-33333_1766133493.jpg', '98B3-33333', 'database\\face_20251219_153821.jpg', '../smart_parking_data/full_crop_LP\\98B3-33333_1766133633.jpg', '98B3-33333', 'database\\face_20251219_153821.jpg'),
-(14, 'TESTRFID01', 1, '2025-12-19 15:55:17', '2025-12-19 16:02:09', 6, '60.00', '../smart_parking_data/full_crop_LP\\98B3-33333_1766134509.jpg', '98B3-33333', 'database\\face_20251219_155516.jpg', '../smart_parking_data/full_crop_LP\\98B3-33333_1766134920.jpg', '98B3-33333', 'database\\face_20251219_155516.jpg'),
-(15, 'TESTRFID01', 1, '2025-12-19 16:08:41', '2025-12-19 16:27:17', 18, '180.00', '../smart_parking_data/full_crop_LP\\98B3-33333_1766135314.jpg', '98B3-33333', 'database\\face_20251219_160841.jpg', '../smart_parking_data/full_crop_LP\\98B3-33333_1766136426.jpg', '98B3-33333', 'database\\face_20251219_155516.jpg'),
-(16, 'TESTRFID01', 1, '2025-12-19 16:36:59', '2025-12-19 16:48:23', 11, '110.00', '../smart_parking_data/full_crop_LP\\20H1-66666_1766137009.jpg', '20H1-66666', 'database\\face_20251219_163659.jpg', '../smart_parking_data/full_crop_LP\\20H1-66666_1766137695.jpg', '20H1-66666', 'database\\face_20251219_155516.jpg'),
-(17, 'TESTRFID01', 1, '2025-12-19 17:01:36', '2025-12-19 17:14:10', 12, '120.00', '../smart_parking_data/full_crop_LP\\20H1-66666_1766138489.jpg', '20H1-66666', 'database\\face_20251219_170136.jpg', '../smart_parking_data/full_crop_LP\\20H1-66666_1766139242.jpg', '20H1-66666', 'database\\face_20251219_170136.jpg'),
-(18, 'TESTRFID01', 1, '2025-12-19 17:15:10', '2025-12-22 13:01:09', 4065, '40650.00', '../smart_parking_data/full_crop_LP\\20H1-66666_1766139305.jpg', '20H1-66666', 'database\\face_20251219_171510.jpg', '../smart_parking_data/full_crop_LP\\20H1-66666_1766383259.jpg', '20H1-66666', 'database\\face_20251222_122937.jpg'),
-(21, 'TESTRFID01', 1, '2025-12-22 13:40:35', '2025-12-22 13:43:36', 3, '30.00', '../smart_parking_data/full_crop_LP\\20H1-66666_1766385631.jpg', '20H1-66666', 'database\\face_20251222_134035.jpg', '../smart_parking_data/full_crop_LP\\20H1-66666_1766385811.jpg', '20H1-66666', 'database\\face_20251222_134035.jpg'),
-(30, '5E68200E', 1, '2025-12-22 16:14:25', '2025-12-22 16:38:10', 23, '230.00', '../smart_parking_data/full_crop_LP\\59V1-79379_1766394861.jpg', '59V1-79379', 'database\\face_20251222_161425.jpg', '../smart_parking_data/full_crop_LP\\59V1-79379_1766396278.jpg', '59V1-79379', 'database\\face_20251222_155903.jpg'),
-(31, '5E68200E', 1, '2025-12-22 16:40:55', '2025-12-22 16:44:55', 4, '40.00', '../smart_parking_data/full_crop_LP\\59V1-79379_1766396450.jpg', '59V1-79379', 'database\\face_20251222_164054.jpg', '../smart_parking_data/full_crop_LP\\59V1-79379_1766396684.jpg', '59V1-79379', 'database\\face_20251222_161326.jpg'),
-(32, '5E68200E', 1, '2025-12-22 16:46:52', '2025-12-22 17:02:58', 16, '160.00', '../smart_parking_data/full_crop_LP\\59V1-79379_1766396808.jpg', '59V1-79379', 'database\\face_20251222_164651.jpg', '../smart_parking_data/full_crop_LP\\59V1-79379_1766397767.jpg', '59V1-79379', 'database\\face_20251219_160841.jpg'),
-(33, '5E68200E', 1, '2025-12-22 17:03:31', '2025-12-22 17:04:02', 0, '0.00', '../smart_parking_data/full_crop_LP\\29C1-99999_1766397807.jpg', '29C1-99999', 'database\\face_20251222_170331.jpg', '../smart_parking_data/full_crop_LP\\29C1-99999_1766397833.jpg', '29C1-99999', 'database\\face_20251222_164054.jpg'),
-(34, '5E68200E', 1, '2025-12-22 17:07:36', '2025-12-22 17:08:05', 0, '0.00', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398051.jpg', '29C1-99999', 'database\\face_20251222_170735.jpg', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398074.jpg', '29C1-99999', 'database\\face_20251222_141340.jpg'),
-(35, '5E68200E', 1, '2025-12-22 17:08:27', '2025-12-22 17:12:22', 3, '30.00', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398103.jpg', '29C1-99999', 'database\\face_20251222_170827.jpg', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398330.jpg', '29C1-99999', 'database\\face_20251219_160841.jpg'),
-(36, '5E68200E', 1, '2025-12-22 17:12:42', '2025-12-22 17:13:09', 0, '0.00', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398358.jpg', '29C1-99999', 'database\\face_20251222_171242.jpg', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398379.jpg', '29C1-99999', 'database\\face_20251219_163659.jpg'),
-(37, '5E68200E', 1, '2025-12-22 17:16:25', '2025-12-22 17:21:27', 5, '50.00', '../smart_parking_data/full_crop_LP\\12B1-1688_1766398580.jpg', '12B1-16888', 'database\\face_20251222_171625.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766398876.jpg', '12B1-16888', 'database\\face_20251219_160841.jpg'),
-(38, '5E68200E', 1, '2025-12-22 17:21:50', '2025-12-22 17:22:23', 0, '0.00', '../smart_parking_data/full_crop_LP\\12B1-16888_1766398906.jpg', '12B1-16888', 'database\\face_20251222_172149.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766398935.jpg', '12B1-16888', 'database\\face_20251219_163659.jpg'),
-(39, '5E68200E', 1, '2025-12-22 17:22:44', '2025-12-22 17:23:09', 0, '0.00', '../smart_parking_data/full_crop_LP\\12B1-16888_1766398962.jpg', '12B1-16888', 'database\\face_20251222_172244.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766398980.jpg', '12B1-16888', 'database\\face_20251222_164651.jpg'),
-(40, '5E68200E', 1, '2025-12-22 17:23:31', '2025-12-22 17:23:54', 0, '0.00', '../smart_parking_data/full_crop_LP\\12B1-16888_1766399008.jpg', '12B1-16888', 'database\\face_20251222_172330.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766399025.jpg', '12B1-16888', 'database\\face_20251222_170331.jpg'),
-(41, '5E68200E', 1, '2025-12-22 17:24:10', '2025-12-22 17:24:28', 0, '0.00', '../smart_parking_data/full_crop_LP\\12B1-16888_1766399048.jpg', '12B1-16888', 'database\\face_20251222_172410.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766399059.jpg', '12B1-16888', 'database\\face_20251222_164054.jpg'),
-(42, '5E68200E', 1, '2025-12-23 13:31:25', '2025-12-23 13:44:13', 12, '120.00', '../smart_parking_data/full_crop_LP\\611-82234_1766471482.jpg', '611-82234', 'database\\face_20251223_133125.jpg', '../smart_parking_data/full_crop_LP\\611-82234_1766472243.jpg', '611-82234', 'database\\face_20251219_155516.jpg'),
-(43, '5E68200E', 1, '2025-12-23 13:44:28', '2025-12-23 13:45:11', 0, '0.00', '../smart_parking_data/full_crop_LP\\611-82234_1766472268.jpg', '611-82234', 'database\\face_20251223_134428.jpg', '../smart_parking_data/full_crop_LP\\611-82234_1766472304.jpg', '611-82234', 'database\\face_20251219_155516.jpg'),
-(44, '5E68200E', 1, '2025-12-23 13:45:38', '2025-12-23 13:46:00', 0, '0.00', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472337.jpg', '59H1-36399', 'database\\face_20251223_134538.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472352.jpg', '59H1-36399', 'database\\face_20251219_163659.jpg'),
-(45, '5E68200E', 1, '2025-12-23 13:46:23', '2025-12-23 13:46:48', 0, '0.00', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472382.jpg', '59H1-36399', 'database\\face_20251223_134623.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472401.jpg', '59H1-36399', 'database\\face_20251219_155516.jpg'),
-(46, '5E68200E', 1, '2025-12-23 13:47:14', '2025-12-23 13:47:42', 0, '0.00', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472432.jpg', '59H1-36399', 'database\\face_20251223_134714.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472454.jpg', '59H1-36399', 'database\\face_20251222_121902.jpg'),
-(47, '5E68200E', 1, '2025-12-23 13:54:01', '2025-12-23 13:54:34', 0, '0.00', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472839.jpg', '59H1-36399', 'database\\face_20251223_135401.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472864.jpg', '59H1-36399', 'database\\face_20251222_171242.jpg'),
-(48, '5E68200E', 1, '2025-12-23 13:58:06', '2025-12-23 13:58:42', 0, '0.00', '../smart_parking_data/full_crop_LP\\59H1-36399_1766473085.jpg', '59H1-36399', 'database\\face_20251223_135806.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766473112.jpg', '59H1-36399', 'database\\face_exit_20251223_135842.jpg'),
-(49, '5E68200E', 1, '2025-12-23 14:02:47', '2025-12-23 14:03:13', 0, '0.00', '../smart_parking_data/full_crop_LP\\59H1-36399_1766473365.jpg', '59H1-36399', 'database\\face_20251223_140247.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766473381.jpg', '59H1-36399', 'database\\face_exit_20251223_140312.jpg'),
-(52, 'TESTRFID02', 1, '2025-12-23 14:59:54', '2025-12-23 15:10:54', 11, '110.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_145953.jpg', '51F97022', 'database\\face_20251223_145954.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_151042.jpg', '51F97022', 'database\\face_exit_20251223_151054.jpg'),
-(54, 'TESTRFID02', 1, '2025-12-23 15:22:35', '2025-12-23 15:23:05', 0, '0.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152234.jpg', '51F97022', 'database\\face_20251223_152235.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152302.jpg', '51F97022', 'database\\face_exit_20251223_152305.jpg'),
-(55, 'TESTRFID03', 1, '2025-12-23 15:23:33', '2025-12-23 15:25:05', 1, '10.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152332.jpg', '51F97022', 'database\\face_20251223_152333.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152504.jpg', '51F97022', 'database\\face_exit_20251223_152505.jpg'),
-(56, 'TESTRFID03', 1, '2025-12-23 15:25:20', '2025-12-23 15:25:39', 0, '0.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152519.jpg', '51F97022', 'database\\face_20251223_152520.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152535.jpg', '51F97022', 'database\\face_exit_20251223_152539.jpg'),
-(57, 'TESTRFID03', 1, '2025-12-23 15:29:39', '2025-12-23 15:29:59', 0, '0.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152935.jpg', '51F97022', 'database\\face_20251223_152939.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152956.jpg', '51F97022', 'database\\face_exit_20251223_152959.jpg'),
-(58, 'TESTRFID03', 1, '2025-12-23 15:34:08', '2025-12-23 15:35:29', 1, '10.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_153406.jpg', '51F97022', 'database\\face_20251223_153408.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_153526.jpg', '51F97022', 'database\\face_exit_20251223_153529.jpg'),
-(59, 'TESTRFID03', 1, '2025-12-23 15:35:43', '2025-12-23 15:41:31', 5, '50.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_153542.jpg', '51F97022', 'database\\face_20251223_153543.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_154128.jpg', '51F97022', 'database\\face_exit_20251223_154131.jpg'),
-(60, 'TESTRFID03', 1, '2025-12-23 15:41:42', '2025-12-23 15:42:14', 0, '0.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_154141.jpg', '51F97022', 'database\\face_20251223_154142.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_154209.jpg', '51F97022', 'database\\face_exit_20251223_154214.jpg'),
-(61, 'TESTRFID03', 1, '2025-12-23 15:43:05', '2025-12-23 15:44:22', 1, '10.00', '../smart_parking_data/full_crop_LP\\51F97022_23122025_154304.jpg', '51F97022', 'database\\face_20251223_154305.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_154416.jpg', '51F97022', 'database\\face_exit_20251223_154422.jpg'),
-(62, 'TESTRFID03', 6, '2025-12-23 15:44:47', NULL, NULL, NULL, '../smart_parking_data/full_crop_LP\\51F97022_23122025_154445.jpg', '51F97022', 'database\\face_20251223_154447.jpg', NULL, NULL, NULL),
-(66, 'TESTRFID02', 1, '2025-12-23 16:35:20', '2025-12-23 16:35:42', 0, '0.00', '../smart_parking_data/full_crop_LP\\51G-74372_23122025_163518.jpg', '51G-74372', 'database\\face_20251223_163520.jpg', '../smart_parking_data/full_crop_LP\\51G-74372_23122025_163536.jpg', '51G-74372', 'database\\face_exit_20251223_163542.jpg'),
-(70, 'TESTRFID02', 1, '2025-12-24 14:45:34', '2025-12-24 14:45:44', 0, '0.00', '../smart_parking_data/full_crop_LP\\99E1-22268_24122025_144533.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_20251224_144534.jpg', '../smart_parking_data/full_crop_LP\\99E1-22268_24122025_144543.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_exit_20251224_144544.jpg'),
-(71, 'TESTRFID02', 1, '2025-12-24 14:47:05', '2025-12-24 14:47:27', 0, '0.00', '../smart_parking_data/full_crop_LP\\99E1-22268_24122025_144700.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_20251224_144705.jpg', '../smart_parking_data/full_crop_LP\\99E1-22268_24122025_144724.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_exit_20251224_144727.jpg'),
-(73, '5E68200E', 1, '2025-12-26 15:11:13', '2025-12-26 15:53:30', 42, '420.00', '../smart_parking_data/full_crop_LP\\20A09999_26122025_151111.jpg', '20A09999', '../smart_parking_data/face_img\\face_20251226_151113.jpg', '../smart_parking_data/full_crop_LP\\20A09999_26122025_155325.jpg', '20A09999', '../smart_parking_data/face_img\\face_exit_20251226_155330.jpg'),
-(74, 'D3E9FD13', 6, '2025-12-26 15:26:22', '2026-06-15 10:51:04', 245964, '99999999.99', '../smart_parking_data/full_crop_LP\\30G25678_26122025_152621.jpg', '30G25678', '../smart_parking_data/face_img\\face_20251226_152622.jpg', NULL, 'ADMIN_MANUAL', NULL),
-(79, '5E68200E', 1, '2026-03-17 13:42:58', '2026-03-17 13:45:11', 2, '2.00', '../smart_parking_data/full_crop_LP\\59H1-36399_17032026_134256.jpg', '59H1-36399', '../smart_parking_data/face_img\\face_20260317_134258.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_17032026_134507.jpg', '59H1-36399', '../smart_parking_data/face_img\\face_exit_20260317_134510.jpg'),
-(81, '5E68200E', 1, '2026-03-17 14:53:58', '2026-06-15 10:09:31', 129315, '64500000.00', '../smart_parking_data/full_crop_LP\\59H1-36399_17032026_145357.jpg', '59H1-36399', '../smart_parking_data/face_img\\face_20260317_145358.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_17032026_162922.jpg', 'ADMIN_MANUAL', '../smart_parking_data/face_img\\face_exit_20260317_162925.jpg'),
-(82, 'TESTRFID02', 6, '2026-03-17 14:55:53', '2026-03-17 15:27:36', 31, '5000.00', '../smart_parking_data/full_crop_LP\\99E1-22268_17032026_145552.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_20260317_145553.jpg', '../smart_parking_data/full_crop_LP\\99E1-22268_17032026_152444.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_exit_20260317_152445.jpg'),
-(83, 'TESTRFID01', 6, '2026-04-01 11:25:35', '2026-06-15 01:37:48', 107412, '53580000.00', '../smart_parking_data/full_crop_LP\\51F-97022_01042026_112535.jpg', '51F-97022', '../smart_parking_data/face_img\\face_20260401_112535.jpg', NULL, 'ADMIN_MANUAL', NULL),
-(84, 'TESTRFID02', 1, '2026-04-01 14:02:15', '2026-04-01 14:03:51', 2, '30000.00', '../smart_parking_data/full_crop_LP\\60A99999_01042026_140210.jpg', '60A99999', '../smart_parking_data/face_img\\face_20260401_140215.jpg', '../smart_parking_data/full_crop_LP\\60A99999_01042026_140347.jpg', '60A99999', '../smart_parking_data/face_img\\face_exit_20260401_140350.jpg');
+(2, '90172383', 6, '2025-08-18 15:52:34', '2026-04-01 17:26:33', 325533, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(10, 'TESTRFID01', NULL, '2025-12-19 12:55:42', '2025-12-19 13:22:38', 26, 260.00, '../smart_parking_data/full_crop_LP\\29C1-99999_1766123742.jpg', '29C1-99999', NULL, '../smart_parking_data/full_crop_LP\\29C1-99999_1766125358.jpg', '29C1-99999', NULL),
+(11, 'TESTRFID01', NULL, '2025-12-19 13:24:14', '2025-12-19 13:43:23', 19, 190.00, '../smart_parking_data/full_crop_LP\\12B1-16888_1766125453.jpg', '12B1-16888', NULL, '../smart_parking_data/full_crop_LP\\12B1-16888_1766126603.jpg', '12B1-16888', NULL),
+(12, 'TESTRFID01', 1, '2025-12-19 13:44:24', '2025-12-19 13:52:36', 8, 80.00, '../smart_parking_data/full_crop_LP\\29C1-99999_1766126663.jpg', '29C1-99999', NULL, '../smart_parking_data/full_crop_LP\\29C1-99999_1766127155.jpg', '29C1-99999', NULL),
+(13, 'TESTRFID01', 1, '2025-12-19 15:38:21', '2025-12-19 15:43:29', 5, 50.00, '../smart_parking_data/full_crop_LP\\98B3-33333_1766133493.jpg', '98B3-33333', 'D:\\Project1\\License-Plate-Recognition\\License-Plate-Recognition\\database\\face_20251219_153821.jpg', '../smart_parking_data/full_crop_LP\\98B3-33333_1766133633.jpg', '98B3-33333', 'D:\\Project1\\License-Plate-Recognition\\License-Plate-Recognition\\database\\face_20251219_153821.jpg'),
+(14, 'TESTRFID01', 1, '2025-12-19 15:55:17', '2025-12-19 16:02:09', 6, 60.00, '../smart_parking_data/full_crop_LP\\98B3-33333_1766134509.jpg', '98B3-33333', 'database\\face_20251219_155516.jpg', '../smart_parking_data/full_crop_LP\\98B3-33333_1766134920.jpg', '98B3-33333', 'database\\face_20251219_155516.jpg'),
+(15, 'TESTRFID01', 1, '2025-12-19 16:08:41', '2025-12-19 16:27:17', 18, 180.00, '../smart_parking_data/full_crop_LP\\98B3-33333_1766135314.jpg', '98B3-33333', 'database\\face_20251219_160841.jpg', '../smart_parking_data/full_crop_LP\\98B3-33333_1766136426.jpg', '98B3-33333', 'database\\face_20251219_155516.jpg'),
+(16, 'TESTRFID01', 1, '2025-12-19 16:36:59', '2025-12-19 16:48:23', 11, 110.00, '../smart_parking_data/full_crop_LP\\20H1-66666_1766137009.jpg', '20H1-66666', 'database\\face_20251219_163659.jpg', '../smart_parking_data/full_crop_LP\\20H1-66666_1766137695.jpg', '20H1-66666', 'database\\face_20251219_155516.jpg'),
+(17, 'TESTRFID01', 1, '2025-12-19 17:01:36', '2025-12-19 17:14:10', 12, 120.00, '../smart_parking_data/full_crop_LP\\20H1-66666_1766138489.jpg', '20H1-66666', 'database\\face_20251219_170136.jpg', '../smart_parking_data/full_crop_LP\\20H1-66666_1766139242.jpg', '20H1-66666', 'database\\face_20251219_170136.jpg'),
+(18, 'TESTRFID01', 1, '2025-12-19 17:15:10', '2025-12-22 13:01:09', 4065, 40650.00, '../smart_parking_data/full_crop_LP\\20H1-66666_1766139305.jpg', '20H1-66666', 'database\\face_20251219_171510.jpg', '../smart_parking_data/full_crop_LP\\20H1-66666_1766383259.jpg', '20H1-66666', 'database\\face_20251222_122937.jpg'),
+(21, 'TESTRFID01', NULL, '2025-12-22 13:40:35', '2025-12-22 13:43:36', 3, 30.00, '../smart_parking_data/full_crop_LP\\20H1-66666_1766385631.jpg', '20H1-66666', 'database\\face_20251222_134035.jpg', '../smart_parking_data/full_crop_LP\\20H1-66666_1766385811.jpg', '20H1-66666', 'database\\face_20251222_134035.jpg'),
+(30, '5E68200E', NULL, '2025-12-22 16:14:25', '2025-12-22 16:38:10', 23, 230.00, '../smart_parking_data/full_crop_LP\\59V1-79379_1766394861.jpg', '59V1-79379', 'database\\face_20251222_161425.jpg', '../smart_parking_data/full_crop_LP\\59V1-79379_1766396278.jpg', '59V1-79379', 'database\\face_20251222_155903.jpg'),
+(31, '5E68200E', NULL, '2025-12-22 16:40:55', '2025-12-22 16:44:55', 4, 40.00, '../smart_parking_data/full_crop_LP\\59V1-79379_1766396450.jpg', '59V1-79379', 'database\\face_20251222_164054.jpg', '../smart_parking_data/full_crop_LP\\59V1-79379_1766396684.jpg', '59V1-79379', 'database\\face_20251222_161326.jpg'),
+(32, '5E68200E', 1, '2025-12-22 16:46:52', '2025-12-22 17:02:58', 16, 160.00, '../smart_parking_data/full_crop_LP\\59V1-79379_1766396808.jpg', '59V1-79379', 'database\\face_20251222_164651.jpg', '../smart_parking_data/full_crop_LP\\59V1-79379_1766397767.jpg', '59V1-79379', 'database\\face_20251219_160841.jpg'),
+(33, '5E68200E', NULL, '2025-12-22 17:03:31', '2025-12-22 17:04:02', 0, 0.00, '../smart_parking_data/full_crop_LP\\29C1-99999_1766397807.jpg', '29C1-99999', 'database\\face_20251222_170331.jpg', '../smart_parking_data/full_crop_LP\\29C1-99999_1766397833.jpg', '29C1-99999', 'database\\face_20251222_164054.jpg'),
+(34, '5E68200E', NULL, '2025-12-22 17:07:36', '2025-12-22 17:08:05', 0, 0.00, '../smart_parking_data/full_crop_LP\\29C1-99999_1766398051.jpg', '29C1-99999', 'database\\face_20251222_170735.jpg', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398074.jpg', '29C1-99999', 'database\\face_20251222_141340.jpg'),
+(35, '5E68200E', NULL, '2025-12-22 17:08:27', '2025-12-22 17:12:22', 3, 30.00, '../smart_parking_data/full_crop_LP\\29C1-99999_1766398103.jpg', '29C1-99999', 'database\\face_20251222_170827.jpg', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398330.jpg', '29C1-99999', 'database\\face_20251219_160841.jpg'),
+(36, '5E68200E', NULL, '2025-12-22 17:12:42', '2025-12-22 17:13:09', 0, 0.00, '../smart_parking_data/full_crop_LP\\29C1-99999_1766398358.jpg', '29C1-99999', 'database\\face_20251222_171242.jpg', '../smart_parking_data/full_crop_LP\\29C1-99999_1766398379.jpg', '29C1-99999', 'database\\face_20251219_163659.jpg'),
+(37, '5E68200E', NULL, '2025-12-22 17:16:25', '2025-12-22 17:21:27', 5, 50.00, '../smart_parking_data/full_crop_LP\\12B1-1688_1766398580.jpg', '12B1-16888', 'database\\face_20251222_171625.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766398876.jpg', '12B1-16888', 'database\\face_20251219_160841.jpg'),
+(38, '5E68200E', NULL, '2025-12-22 17:21:50', '2025-12-22 17:22:23', 0, 0.00, '../smart_parking_data/full_crop_LP\\12B1-16888_1766398906.jpg', '12B1-16888', 'database\\face_20251222_172149.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766398935.jpg', '12B1-16888', 'database\\face_20251219_163659.jpg'),
+(39, '5E68200E', NULL, '2025-12-22 17:22:44', '2025-12-22 17:23:09', 0, 0.00, '../smart_parking_data/full_crop_LP\\12B1-16888_1766398962.jpg', '12B1-16888', 'database\\face_20251222_172244.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766398980.jpg', '12B1-16888', 'database\\face_20251222_164651.jpg'),
+(40, '5E68200E', NULL, '2025-12-22 17:23:31', '2025-12-22 17:23:54', 0, 0.00, '../smart_parking_data/full_crop_LP\\12B1-16888_1766399008.jpg', '12B1-16888', 'database\\face_20251222_172330.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766399025.jpg', '12B1-16888', 'database\\face_20251222_170331.jpg'),
+(41, '5E68200E', NULL, '2025-12-22 17:24:10', '2025-12-22 17:24:28', 0, 0.00, '../smart_parking_data/full_crop_LP\\12B1-16888_1766399048.jpg', '12B1-16888', 'database\\face_20251222_172410.jpg', '../smart_parking_data/full_crop_LP\\12B1-16888_1766399059.jpg', '12B1-16888', 'database\\face_20251222_164054.jpg'),
+(42, '5E68200E', NULL, '2025-12-23 13:31:25', '2025-12-23 13:44:13', 12, 120.00, '../smart_parking_data/full_crop_LP\\611-82234_1766471482.jpg', '611-82234', 'database\\face_20251223_133125.jpg', '../smart_parking_data/full_crop_LP\\611-82234_1766472243.jpg', '611-82234', 'database\\face_20251219_155516.jpg'),
+(43, '5E68200E', NULL, '2025-12-23 13:44:28', '2025-12-23 13:45:11', 0, 0.00, '../smart_parking_data/full_crop_LP\\611-82234_1766472268.jpg', '611-82234', 'database\\face_20251223_134428.jpg', '../smart_parking_data/full_crop_LP\\611-82234_1766472304.jpg', '611-82234', 'database\\face_20251219_155516.jpg'),
+(44, '5E68200E', NULL, '2025-12-23 13:45:38', '2025-12-23 13:46:00', 0, 0.00, '../smart_parking_data/full_crop_LP\\59H1-36399_1766472337.jpg', '59H1-36399', 'database\\face_20251223_134538.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472352.jpg', '59H1-36399', 'database\\face_20251219_163659.jpg'),
+(45, '5E68200E', NULL, '2025-12-23 13:46:23', '2025-12-23 13:46:48', 0, 0.00, '../smart_parking_data/full_crop_LP\\59H1-36399_1766472382.jpg', '59H1-36399', 'database\\face_20251223_134623.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472401.jpg', '59H1-36399', 'database\\face_20251219_155516.jpg'),
+(46, '5E68200E', NULL, '2025-12-23 13:47:14', '2025-12-23 13:47:42', 0, 0.00, '../smart_parking_data/full_crop_LP\\59H1-36399_1766472432.jpg', '59H1-36399', 'database\\face_20251223_134714.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472454.jpg', '59H1-36399', 'database\\face_20251222_121902.jpg'),
+(47, '5E68200E', NULL, '2025-12-23 13:54:01', '2025-12-23 13:54:34', 0, 0.00, '../smart_parking_data/full_crop_LP\\59H1-36399_1766472839.jpg', '59H1-36399', 'database\\face_20251223_135401.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766472864.jpg', '59H1-36399', 'database\\face_20251222_171242.jpg'),
+(48, '5E68200E', NULL, '2025-12-23 13:58:06', '2025-12-23 13:58:42', 0, 0.00, '../smart_parking_data/full_crop_LP\\59H1-36399_1766473085.jpg', '59H1-36399', 'database\\face_20251223_135806.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766473112.jpg', '59H1-36399', 'database\\face_exit_20251223_135842.jpg'),
+(49, '5E68200E', NULL, '2025-12-23 14:02:47', '2025-12-23 14:03:13', 0, 0.00, '../smart_parking_data/full_crop_LP\\59H1-36399_1766473365.jpg', '59H1-36399', 'database\\face_20251223_140247.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_1766473381.jpg', '59H1-36399', 'database\\face_exit_20251223_140312.jpg'),
+(52, 'TESTRFID02', 1, '2025-12-23 14:59:54', '2025-12-23 15:10:54', 11, 110.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_145953.jpg', '51F97022', 'database\\face_20251223_145954.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_151042.jpg', '51F97022', 'database\\face_exit_20251223_151054.jpg'),
+(54, 'TESTRFID02', NULL, '2025-12-23 15:22:35', '2025-12-23 15:23:05', 0, 0.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_152234.jpg', '51F97022', 'database\\face_20251223_152235.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152302.jpg', '51F97022', 'database\\face_exit_20251223_152305.jpg'),
+(55, 'TESTRFID03', 1, '2025-12-23 15:23:33', '2025-12-23 15:25:05', 1, 10.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_152332.jpg', '51F97022', 'database\\face_20251223_152333.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152504.jpg', '51F97022', 'database\\face_exit_20251223_152505.jpg'),
+(56, 'TESTRFID03', NULL, '2025-12-23 15:25:20', '2025-12-23 15:25:39', 0, 0.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_152519.jpg', '51F97022', 'database\\face_20251223_152520.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152535.jpg', '51F97022', 'database\\face_exit_20251223_152539.jpg'),
+(57, 'TESTRFID03', NULL, '2025-12-23 15:29:39', '2025-12-23 15:29:59', 0, 0.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_152935.jpg', '51F97022', 'database\\face_20251223_152939.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_152956.jpg', '51F97022', 'database\\face_exit_20251223_152959.jpg'),
+(58, 'TESTRFID03', 1, '2025-12-23 15:34:08', '2025-12-23 15:35:29', 1, 10.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_153406.jpg', '51F97022', 'database\\face_20251223_153408.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_153526.jpg', '51F97022', 'database\\face_exit_20251223_153529.jpg'),
+(59, 'TESTRFID03', NULL, '2025-12-23 15:35:43', '2025-12-23 15:41:31', 5, 50.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_153542.jpg', '51F97022', 'database\\face_20251223_153543.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_154128.jpg', '51F97022', 'database\\face_exit_20251223_154131.jpg'),
+(60, 'TESTRFID03', NULL, '2025-12-23 15:41:42', '2025-12-23 15:42:14', 0, 0.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_154141.jpg', '51F97022', 'database\\face_20251223_154142.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_154209.jpg', '51F97022', 'database\\face_exit_20251223_154214.jpg'),
+(61, 'TESTRFID03', NULL, '2025-12-23 15:43:05', '2025-12-23 15:44:22', 1, 10.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_154304.jpg', '51F97022', 'database\\face_20251223_154305.jpg', '../smart_parking_data/full_crop_LP\\51F97022_23122025_154416.jpg', '51F97022', 'database\\face_exit_20251223_154422.jpg'),
+(62, 'TESTRFID03', 1, '2025-12-23 15:44:47', '2026-03-18 23:43:11', 122878, 1228780.00, '../smart_parking_data/full_crop_LP\\51F97022_23122025_154445.jpg', '51F97022', 'database\\face_20251223_154447.jpg', NULL, NULL, NULL),
+(66, 'TESTRFID02', NULL, '2025-12-23 16:35:20', '2025-12-23 16:35:42', 0, 0.00, '../smart_parking_data/full_crop_LP\\51G-74372_23122025_163518.jpg', '51G-74372', 'database\\face_20251223_163520.jpg', '../smart_parking_data/full_crop_LP\\51G-74372_23122025_163536.jpg', '51G-74372', 'database\\face_exit_20251223_163542.jpg'),
+(70, 'TESTRFID02', NULL, '2025-12-24 14:45:34', '2025-12-24 14:45:44', 0, 0.00, '../smart_parking_data/full_crop_LP\\99E1-22268_24122025_144533.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_20251224_144534.jpg', '../smart_parking_data/full_crop_LP\\99E1-22268_24122025_144543.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_exit_20251224_144544.jpg'),
+(71, 'TESTRFID02', NULL, '2025-12-24 14:47:05', '2025-12-24 14:47:27', 0, 0.00, '../smart_parking_data/full_crop_LP\\99E1-22268_24122025_144700.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_20251224_144705.jpg', '../smart_parking_data/full_crop_LP\\99E1-22268_24122025_144724.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_exit_20251224_144727.jpg'),
+(79, '5E68200E', 1, '2026-03-17 13:42:58', '2026-03-17 13:45:11', 2, 2.00, '../smart_parking_data/full_crop_LP\\59H1-36399_17032026_134256.jpg', '59H1-36399', '../smart_parking_data/face_img\\face_20260317_134258.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_17032026_134507.jpg', '59H1-36399', '../smart_parking_data/face_img\\face_exit_20260317_134510.jpg'),
+(81, '5E68200E', 6, '2026-03-17 14:53:58', '2026-04-01 17:01:37', 21727, 5000.00, '../smart_parking_data/full_crop_LP\\59H1-36399_17032026_145357.jpg', '59H1-36399', '../smart_parking_data/face_img\\face_20260317_145358.jpg', '../smart_parking_data/full_crop_LP\\59H1-36399_17032026_162922.jpg', '59H1-36399', '../smart_parking_data/face_img\\face_exit_20260317_162925.jpg'),
+(82, 'TESTRFID02', 6, '2026-03-17 14:55:53', '2026-03-17 15:27:36', 31, 5000.00, '../smart_parking_data/full_crop_LP\\99E1-22268_17032026_145552.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_20260317_145553.jpg', '../smart_parking_data/full_crop_LP\\99E1-22268_17032026_152444.jpg', '99E1-22268', '../smart_parking_data/face_img\\face_exit_20260317_152445.jpg'),
+(87, 'D3E9FD13', 6, '2026-04-01 17:41:04', '2026-04-01 17:42:04', 1, 0.00, '../smart_parking_data/full_crop_LP\\38A27203_01042026_174100.jpg', '38A27203', '../smart_parking_data/face_img\\face_20260401_174104.jpg', '../smart_parking_data/full_crop_LP\\38A27203_01042026_174140.jpg', '38A27203', '../smart_parking_data/face_img\\face_exit_20260401_174142.jpg'),
+(93, 'D3E9FD13', 1, '2026-04-02 10:49:34', '2026-04-02 10:51:34', 2, 30000.00, '../smart_parking_data/full_crop_LP\\51H59565_02042026_104931.jpg', '51H59565', '../smart_parking_data/face_img\\face_20260402_104934.jpg', '../smart_parking_data/full_crop_LP\\51H59565_02042026_105007.jpg', '51H59565', '../smart_parking_data/face_img\\face_exit_20260402_105009.jpg'),
+(97, 'D3E9FD13', 6, '2026-04-02 16:31:07', '2026-04-02 16:32:28', 1, 30000.00, '../smart_parking_data/full_crop_LP\\60A99999_02042026_163105.jpg', '60A99999', '../smart_parking_data/face_img\\face_20260402_163107.jpg', '../smart_parking_data/full_crop_LP\\60A99999_02042026_163210.jpg', '60A99999', '../smart_parking_data/face_img\\face_exit_20260402_163210.jpg'),
+(100, '6F8D9BBD', 6, '2026-05-28 16:17:48', '2026-06-11 16:14:23', 20156, NULL, '../smart_parking_data/full_crop_LP\\61A-88888_28052026_161746.jpg', '61A-88888', '../smart_parking_data/face_img\\face_20260528_161748.jpg', NULL, NULL, NULL),
+(101, '6F8D9BBD', 6, '2026-05-28 16:17:50', '2026-06-11 16:12:59', 20155, NULL, '../smart_parking_data/full_crop_LP\\61A-88888_28052026_161746.jpg', '61A-88888', '../smart_parking_data/face_img\\face_20260528_161750.jpg', NULL, NULL, NULL),
+(102, 'D3E9FD13', 1, '2026-06-13 16:47:20', '2026-06-13 17:14:45', 27, NULL, '../smart_parking_data/full_crop_LP\\43A27208_13062026_164718.jpg', '43A27208', '../smart_parking_data/face_img\\face_20260613_164720.jpg', NULL, NULL, NULL),
+(103, 'D3E9FD13', 6, '2026-06-13 17:20:43', '2026-06-13 17:23:11', 2, NULL, '../smart_parking_data/full_crop_LP\\43A27208_13062026_172040.jpg', '43A27208', '../smart_parking_data/face_img\\face_20260613_172043.jpg', NULL, NULL, NULL),
+(104, 'D3E9FD13', 1, '2026-06-13 17:32:41', '2026-06-13 17:33:04', 0, NULL, '../smart_parking_data/full_crop_LP\\61A-88888_13062026_173238.jpg', '61A-88888', '../smart_parking_data/face_img\\face_20260613_173241.jpg', NULL, NULL, NULL),
+(106, 'D3E9FD13', 1, '2026-06-13 17:46:49', '2026-06-13 17:47:39', 0, 30000.00, '../smart_parking_data/full_crop_LP\\61A-88888_13062026_174647.jpg', '61A-88888', '../smart_parking_data/face_img\\face_20260613_174649.jpg', '../smart_parking_data/full_crop_LP\\61A-88888_13062026_174717.jpg', '61A-88888', '../smart_parking_data/face_img\\face_exit_20260613_174719.jpg'),
+(107, 'D3E9FD13', 6, '2026-06-13 17:48:32', NULL, NULL, NULL, '../smart_parking_data/full_crop_LP\\61A-88888_13062026_174831.jpg', '61A-88888', '../smart_parking_data/face_img\\face_20260613_174832.jpg', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -428,19 +562,19 @@ CREATE TABLE `parkingslot` (
   `GridCol` int(11) NOT NULL DEFAULT 0,
   `GridRow` int(11) NOT NULL DEFAULT 0,
   `Direction` varchar(1) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `parkingslot`
 --
 
 INSERT INTO `parkingslot` (`SlotID`, `SlotCode`, `Area`, `Status`, `CurrentRFID`, `GridCol`, `GridRow`, `Direction`) VALUES
-(1, '1', 'A', 0, NULL, 1, 4, NULL),
+(1, '1', 'A', 0, 'D3E9FD13', 1, 4, NULL),
 (2, '2', 'A', 1, NULL, 1, 3, NULL),
 (3, '3', 'A', 1, NULL, 1, 2, NULL),
 (4, '4', 'A', 2, NULL, 1, 1, NULL),
 (5, '5', 'A', 1, NULL, 1, 0, NULL),
-(6, '1', 'B', 1, 'TESTRFID03', 2, 4, NULL),
+(6, '1', 'B', 0, 'D3E9FD13', 2, 4, NULL),
 (7, '2', 'B', 1, NULL, 2, 3, NULL),
 (8, '3', 'B', 1, NULL, 2, 2, NULL),
 (9, '4', 'B', 1, NULL, 2, 1, NULL),
@@ -466,34 +600,27 @@ INSERT INTO `parkingslot` (`SlotID`, `SlotCode`, `Area`, `Status`, `CurrentRFID`
 
 CREATE TABLE `payments` (
   `PaymentID` int(11) NOT NULL,
-  `RFID` varchar(50) DEFAULT NULL,
-  `HistoryID` int(11) DEFAULT NULL,
-  `Amount` int(11) DEFAULT NULL,
+  `RFID` varchar(20) DEFAULT NULL,
+  `HistoryID` bigint(20) DEFAULT NULL,
+  `Amount` decimal(10,2) DEFAULT NULL,
   `Status` enum('pending','waiting','paid') DEFAULT 'pending',
   `CreatedAt` timestamp NOT NULL DEFAULT current_timestamp(),
   `Notified` tinyint(4) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `payments`
 --
 
 INSERT INTO `payments` (`PaymentID`, `RFID`, `HistoryID`, `Amount`, `Status`, `CreatedAt`, `Notified`) VALUES
-(1, 'TESTRFID02', 76, 10, 'paid', '2026-03-16 01:06:41', 1),
-(2, 'TESTRFID03', 62, 1194830, 'paid', '2026-03-16 01:08:02', 1),
-(3, 'TESTRFID03', 77, 0, 'paid', '2026-03-16 01:15:16', 1),
-(4, 'TESTRFID03', 78, 2000, 'paid', '2026-03-16 01:20:37', 1),
-(5, 'TESTRFID03', 79, 0, 'paid', '2026-03-16 01:47:33', 1),
-(6, 'TESTRFID03', 80, 20, 'paid', '2026-03-16 02:19:21', 1),
-(7, '5E68200E', 78, 5000, 'paid', '2026-03-16 23:26:21', 1),
-(8, '5E68200E', 80, 0, 'paid', '2026-03-16 23:53:35', 1),
-(9, '5E68200E', 81, 5000, 'paid', '2026-03-17 01:04:22', 1),
-(10, 'TESTRFID02', 82, 5000, 'paid', '2026-03-17 01:24:45', 1),
-(11, '5E68200E', 81, 10000, 'paid', '2026-03-17 02:29:25', 1),
-(0, 'TESTRFID02', 84, 5000, 'paid', '2026-04-01 07:03:51', 1),
-(0, 'TESTRFID01', 83, 53580000, 'paid', '2026-06-14 18:37:48', 1),
-(0, '5E68200E', 81, 64500000, 'paid', '2026-06-15 03:09:31', 1),
-(0, 'D3E9FD13', 74, 122820000, 'paid', '2026-06-15 03:51:04', 1);
+(2, 'TESTRFID03', 62, 1194830.00, 'paid', '2026-03-16 08:08:02', 1),
+(5, 'TESTRFID03', 79, 0.00, 'paid', '2026-03-16 08:47:33', 1),
+(9, '5E68200E', 81, 5000.00, 'paid', '2026-03-17 08:04:22', 1),
+(10, 'TESTRFID02', 82, 5000.00, 'paid', '2026-03-17 08:24:45', 1),
+(17, 'D3E9FD13', 87, 0.00, 'paid', '2026-04-01 10:41:42', 1),
+(18, 'D3E9FD13', 93, 30000.00, 'paid', '2026-04-02 03:50:09', 1),
+(22, 'D3E9FD13', 97, 30000.00, 'paid', '2026-04-02 09:32:11', 1),
+(23, 'D3E9FD13', 106, 30000.00, 'paid', '2026-06-13 10:47:19', 1);
 
 -- --------------------------------------------------------
 
@@ -503,11 +630,11 @@ INSERT INTO `payments` (`PaymentID`, `RFID`, `HistoryID`, `Amount`, `Status`, `C
 
 CREATE TABLE `rfidcard` (
   `RFID` varchar(20) NOT NULL,
-  `OwnerName` varchar(50) CHARACTER SET utf8 DEFAULT NULL,
+  `OwnerName` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `VehiclePlate` varchar(15) DEFAULT NULL,
   `PhoneNumber` varchar(15) DEFAULT NULL,
   `Type` varchar(10) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `rfidcard`
@@ -515,11 +642,24 @@ CREATE TABLE `rfidcard` (
 
 INSERT INTO `rfidcard` (`RFID`, `OwnerName`, `VehiclePlate`, `PhoneNumber`, `Type`) VALUES
 ('5E68200E', 'Phạm Nguyễn Bảo Trang', '61K - 7813129', '0665526556', 'SUV'),
+('6F8D9BBD', '28/05/2026', '', '0123123123', 'SUV'),
 ('90172383', 'Trương Thị Vân', '93A - 779312', '0125545167', 'Basic'),
-('D3E9FD13', 'Phạm Nguyễn Bảo Trang', '61K - 7813129', '0125545167', 'SUV'),
+('D3E9FD13', 'T', 'WEWRW51', '2413654123', 'BMW'),
 ('TESTRFID01', 'Test User', '29T8-2843', '0123456789', 'Test'),
 ('TESTRFID02', 't2', '24FF786', '234562346', 'Inova'),
 ('TESTRFID03', 'test3', 'WWWWWWW', '4567897543', 'BMW');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `system_cache`
+--
+
+CREATE TABLE `system_cache` (
+  `cache_key` varchar(50) NOT NULL,
+  `cache_value` text NOT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Chỉ mục cho các bảng đã đổ
@@ -546,10 +686,26 @@ ALTER TABLE `parkingslot`
   ADD PRIMARY KEY (`SlotID`);
 
 --
+-- Chỉ mục cho bảng `payments`
+--
+ALTER TABLE `payments`
+  ADD PRIMARY KEY (`PaymentID`),
+  ADD UNIQUE KEY `unique_history` (`HistoryID`),
+  ADD KEY `fk_payment_rfid` (`RFID`),
+  ADD KEY `idx_payment_history` (`HistoryID`),
+  ADD KEY `idx_payment_status` (`Status`);
+
+--
 -- Chỉ mục cho bảng `rfidcard`
 --
 ALTER TABLE `rfidcard`
   ADD PRIMARY KEY (`RFID`);
+
+--
+-- Chỉ mục cho bảng `system_cache`
+--
+ALTER TABLE `system_cache`
+  ADD PRIMARY KEY (`cache_key`);
 
 --
 -- AUTO_INCREMENT cho các bảng đã đổ
@@ -559,19 +715,43 @@ ALTER TABLE `rfidcard`
 -- AUTO_INCREMENT cho bảng `gatelog`
 --
 ALTER TABLE `gatelog`
-  MODIFY `LogID` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=272;
+  MODIFY `LogID` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=397;
 
 --
 -- AUTO_INCREMENT cho bảng `parkinghistory`
 --
 ALTER TABLE `parkinghistory`
-  MODIFY `HistoryID` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
+  MODIFY `HistoryID` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108;
 
 --
 -- AUTO_INCREMENT cho bảng `parkingslot`
 --
 ALTER TABLE `parkingslot`
   MODIFY `SlotID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
+-- AUTO_INCREMENT cho bảng `payments`
+--
+ALTER TABLE `payments`
+  MODIFY `PaymentID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+
+--
+-- Các ràng buộc cho các bảng đã đổ
+--
+
+--
+-- Các ràng buộc cho bảng `parkinghistory`
+--
+ALTER TABLE `parkinghistory`
+  ADD CONSTRAINT `parkinghistory_ibfk_1` FOREIGN KEY (`RFID`) REFERENCES `rfidcard` (`RFID`),
+  ADD CONSTRAINT `parkinghistory_ibfk_2` FOREIGN KEY (`SlotID`) REFERENCES `parkingslot` (`SlotID`);
+
+--
+-- Các ràng buộc cho bảng `payments`
+--
+ALTER TABLE `payments`
+  ADD CONSTRAINT `fk_payment_history` FOREIGN KEY (`HistoryID`) REFERENCES `parkinghistory` (`HistoryID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_payment_rfid` FOREIGN KEY (`RFID`) REFERENCES `rfidcard` (`RFID`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
